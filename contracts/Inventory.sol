@@ -7,12 +7,11 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title Inventory Contract
  */
-contract Inventory is ERC1155, Ownable, ReentrancyGuard {
+contract Inventory is ERC1155, Ownable {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -25,6 +24,70 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
     /// @notice Event emitted when user unequipped with position.
     event Unequipped(address user, uint8 position);
 
+    /// @notice Event emitted when withdrew any ERC20 tokens.
+    event ERC20TokensWithdrew(address tokenAddress, uint256 amount);
+
+    /// @notice Event emitted when game settings set.
+    event GameSettingsSet(
+        address gameAddr,
+        bool status,
+        uint256 minTemplateId,
+        uint256 maxTemplateId
+    );
+
+    /// @notice Event emitted when paths set.
+    event PathsSet(string newPathStart, string newPathEnd);
+
+    /// @notice Event emitted when owner added new template.
+    event NewTemplateAdded(
+        uint256 templateId,
+        uint8 equipmentPosition,
+        address user,
+        uint256 tokenId
+    );
+
+    /// @notice Event emitted when owner added new template and transferred it to receiver.
+    event NewTemplateAddedAndTransferred(
+        uint256 templateId,
+        uint8 equipmentPosition,
+        address receiver,
+        uint256 tokenId
+    );
+
+    /// @notice Event emitted when approved game created item from template.
+    event ItemFromTemplateCreated(
+        uint256 templateId,
+        uint8 feature1,
+        uint8 feature2,
+        uint8 feature3,
+        uint8 feature4,
+        uint8 equipmentPosition,
+        uint256 amount,
+        address player,
+        uint256 tokenId
+    );
+
+    /// @notice Event emitted when approved game changed feautres of item.
+    event FeaturesForItemChanged(
+        uint256 tokenId,
+        uint8 feature1,
+        uint8 feature2,
+        uint8 feature3,
+        uint8 feature4,
+        uint8 equipmentPosition,
+        address player
+    );
+
+    /// @notice Event emitted when treasure chest is added.
+    event TreasureChestAdded(
+        uint256 tokenId,
+        uint256 rewardsAmount,
+        address user
+    );
+
+    /// @notice Event emitted when token is burnt.
+    event burnt(address owner, uint256 tokenId, uint256 treasureChestRewardsForToken, uint256 treasureHuntPoints);
+
     string private _pathStart;
     string private _pathEnd;
 
@@ -36,14 +99,14 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
     mapping(address => ApprovedGame) private _approvedGameContract;
 
     // Mapping from token ID to respective treasure chest rewards in VIDYA tokens
-    mapping(uint256 => uint256) public treasureChestRewards;
+    mapping(address => mapping(uint256 => uint256)) public treasureChestRewards;
 
     // Mapping to calculate how many treasure hunts an address has participated in
     mapping(address => uint256) public treasureHuntPoints;
 
     // Mapping for the different equipment items of each address/character
-    // 0 - head, 1 - left hand, 2 - neck, 3 - right hand, 4 - chest, 5 - legs
-    mapping(address => uint256[6]) public characterEquipment;
+    // 0 - head, 1 - left hand, 2 - neck, 3 - right hand, 4 - chest, 5 - legs, 6 - feet slot, 7 - cape slot, 8 - belt slot
+    mapping(address => uint256[8]) public characterEquipment;
 
     // To check if a template exists
     mapping(uint256 => bool) _templateExists;
@@ -118,17 +181,6 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         addNewTemplate(0, 0);
     }
 
-    function checkAndTransferVIDYA(uint256 _amount) private {
-        require(
-            treasureChestRewardToken.transferFrom(
-                msg.sender,
-                address(this),
-                _amount
-            ) == true,
-            "transfer must succeed"
-        );
-    }
-
     /**
      * @dev External function to equip. This function can be called when only token is existed.
      * @param _tokenId Token Id
@@ -139,7 +191,7 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         isCallerOwnedToken(msg.sender, _tokenId)
     {
         require(
-            _equipmentPosition < 6,
+            _equipmentPosition < 8,
             "Invenotry: Invalid equipment position value."
         );
         require(
@@ -158,7 +210,7 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
      */
     function unequip(uint8 _equipmentPosition) external {
         require(
-            _equipmentPosition < 6,
+            _equipmentPosition < 8,
             "Invenotry: Invalid equipment position value."
         );
         characterEquipment[msg.sender][_equipmentPosition] = 0;
@@ -174,6 +226,8 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         IERC20 token = IERC20(_tokenContract);
         uint256 amount = token.balanceOf(address(this));
         token.safeTransfer(msg.sender, amount);
+
+        emit ERC20TokensWithdrew(_tokenContract, amount);
     }
 
     /**
@@ -192,6 +246,8 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         _approvedGameContract[_game].approved = _status;
         _approvedGameContract[_game].minTemplateId = _minTemplateId;
         _approvedGameContract[_game].maxTemplateId = _maxTemplateId;
+
+        emit GameSettingsSet(_game, _status, _minTemplateId, _maxTemplateId);
     }
 
     /**
@@ -205,6 +261,8 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
     ) external onlyOwner {
         _pathStart = _newPathStart;
         _pathEnd = _newPathEnd;
+
+        emit PathsSet(_newPathStart, _newPathEnd);
     }
 
     /**
@@ -222,6 +280,8 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
         uint256 id = allItems.length - 1;
         _mint(msg.sender, id, 1, "");
+
+        emit NewTemplateAdded(_templateId, _equipmentPosition, msg.sender, id);
     }
 
     /**
@@ -240,6 +300,13 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
         uint256 id = allItems.length - 1;
         _mint(_receiver, id, 1, "");
+
+        emit NewTemplateAddedAndTransferred(
+            _templateId,
+            _equipmentPosition,
+            _receiver,
+            id
+        );
     }
 
     /**
@@ -286,6 +353,17 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         id = allItems.length - 1;
         _mint(_player, id, _amount, "");
 
+        emit ItemFromTemplateCreated(
+            _templateId,
+            _feature1,
+            _feature2,
+            _feature3,
+            _feature4,
+            _equipmentPosition,
+            _amount,
+            _player,
+            id
+        );
         return id;
     }
 
@@ -315,6 +393,15 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
             _feature3,
             _feature4,
             _equipmentPosition
+        );
+        emit FeaturesForItemChanged(
+            _tokenId,
+            _feature1,
+            _feature2,
+            _feature3,
+            _feature4,
+            _equipmentPosition,
+            _player
         );
     }
 
@@ -355,9 +442,11 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         uint256 _rewardsAmount,
         address _user
     ) external onlyApprovedGame isCallerOwnedToken(_user, _tokenId) {
-        treasureChestRewards[_tokenId] =
+        treasureChestRewards[_user][_tokenId] =
             _rewardsAmount *
             balanceOf(_user, _tokenId);
+
+        emit TreasureChestAdded(_tokenId, _rewardsAmount, _user);
     }
 
     /**
@@ -372,7 +461,7 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
         allItems[_tokenId].burned = true;
 
         _burn(_owner, _tokenId, balanceOf(_owner, _tokenId));
-        uint256 treasureChestRewardsForToken = treasureChestRewards[_tokenId];
+        uint256 treasureChestRewardsForToken = treasureChestRewards[_owner][_tokenId];
         if (treasureChestRewardsForToken > 0) {
             treasureChestRewardToken.safeTransfer(
                 _owner,
@@ -380,6 +469,8 @@ contract Inventory is ERC1155, Ownable, ReentrancyGuard {
             );
             treasureHuntPoints[_owner]++;
         }
+
+        emit burnt(_owner, _tokenId, treasureChestRewardsForToken, treasureHuntPoints[_owner]);
     }
 
     /**
