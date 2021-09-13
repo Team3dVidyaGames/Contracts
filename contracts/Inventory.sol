@@ -86,7 +86,12 @@ contract Inventory is ERC1155, Ownable {
     );
 
     /// @notice Event emitted when token is burnt.
-    event burnt(address owner, uint256 tokenId, uint256 treasureChestRewardsForToken, uint256 treasureHuntPoints);
+    event burnt(
+        address owner,
+        uint256 tokenId,
+        uint256 treasureChestRewardsForToken,
+        uint256 treasureHuntPoints
+    );
 
     string private _pathStart;
     string private _pathEnd;
@@ -461,7 +466,9 @@ contract Inventory is ERC1155, Ownable {
         allItems[_tokenId].burned = true;
 
         _burn(_owner, _tokenId, balanceOf(_owner, _tokenId));
-        uint256 treasureChestRewardsForToken = treasureChestRewards[_owner][_tokenId];
+        uint256 treasureChestRewardsForToken = treasureChestRewards[_owner][
+            _tokenId
+        ];
         if (treasureChestRewardsForToken > 0) {
             treasureChestRewardToken.safeTransfer(
                 _owner,
@@ -470,7 +477,12 @@ contract Inventory is ERC1155, Ownable {
             treasureHuntPoints[_owner]++;
         }
 
-        emit burnt(_owner, _tokenId, treasureChestRewardsForToken, treasureHuntPoints[_owner]);
+        emit burnt(
+            _owner,
+            _tokenId,
+            treasureChestRewardsForToken,
+            treasureHuntPoints[_owner]
+        );
     }
 
     /**
