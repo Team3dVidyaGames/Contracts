@@ -269,7 +269,7 @@ contract Inventory is ERC1155Base {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
 
-        uint256 id = allItems.length;
+        uint256 id = allItems.length - 1;
 
         _mint(msg.sender, id, 1, "");
         setTokenURI(id, _templateId);
@@ -294,7 +294,7 @@ contract Inventory is ERC1155Base {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
 
-        uint256 id = allItems.length;
+        uint256 id = allItems.length - 1;
 
         _mint(_receiver, id, 1, "");
         setTokenURI(id, _templateId);
@@ -355,7 +355,7 @@ contract Inventory is ERC1155Base {
             )
         );
 
-        id = allItems.length;
+        id = allItems.length - 1;
 
         _mint(_player, id, _amount, "");
         setTokenURI(id, _templateId);
