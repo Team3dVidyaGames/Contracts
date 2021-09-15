@@ -26,7 +26,7 @@ contract Inventory is ERC1155Base {
     event ERC20TokensWithdrew(address tokenAddress, uint256 amount);
 
     /// @notice Event emitted when game settings set.
-    event GameSettingsSet(
+    event GamesForTemplateApproved(
         address gameAddr,
         bool status,
         uint256 minTemplateId,
@@ -74,7 +74,11 @@ contract Inventory is ERC1155Base {
     );
 
     /// @notice Event emitted when token amount is increased.
-    event TokenAmountsIncreased(address tokenOwner, uint256 tokenId, uint256 amount);
+    event TokenAmountsIncreased(
+        address tokenOwner,
+        uint256 tokenId,
+        uint256 amount
+    );
 
     /// @notice Event emitted when treasure chest is added.
     event TreasureChestAdded(uint256 tokenId, uint256 rewardsAmount);
@@ -95,7 +99,7 @@ contract Inventory is ERC1155Base {
         IERC20(0x3D3D35bb9bEC23b06Ca00fe472b50E7A4c692C30);
 
     // Mapping of contract addresses that are allowed to edit item features
-    mapping(address => ApprovedGame) private _approvedGameContract;
+    mapping(uint256 => mapping(address => bool)) private templateApprovedGames;
 
     // Mapping from token ID to respective treasure chest rewards in VIDYA tokens
     mapping(uint256 => uint256) public treasureChestRewards;
@@ -113,6 +117,9 @@ contract Inventory is ERC1155Base {
     // To check if items from templates can be unique or multiples
     mapping(uint256 => bool) public isTemplateUnique;
 
+    // To see how many and which template ids current game holds
+    mapping(address => uint256[]) public gameAccessTemplateIds;
+
     /* Item struct holds the itemId, a total of 4 additional features
     and the burned status */
     struct Item {
@@ -125,19 +132,13 @@ contract Inventory is ERC1155Base {
         bool burned;
     }
 
-    struct ApprovedGame {
-        bool approved;
-        uint256 minTemplateId;
-        uint256 maxTemplateId;
-    }
-
     // All items created, ever, both burned and not burned
     Item[] public allItems;
 
-    modifier onlyApprovedGame() {
+    modifier onlyApprovedGame(uint256 _templateId) {
         require(
-            _approvedGameContract[msg.sender].approved,
-            "Inventory: Caller is not an approved game contract"
+            templateApprovedGames[_templateId][msg.sender],
+            "Inventory: Template ID is not approved."
         );
         _;
     }
@@ -235,23 +236,28 @@ contract Inventory is ERC1155Base {
     }
 
     /**
-     * @dev External function to set game settings. This function can be called by only owner.
-     * @param _game Address of game
+     * @dev External function to approve games for templates. This function can be called by only owner.
+     * @param _gameAddr Address of game
      * @param _status Game status(Approve or disapprove)
      * @param _minTemplateId Minimum template id
      * @param _maxTemplateId Maximum template id
      */
-    function setGameSettings(
-        address _game,
+    function approvedGamesForTemplate(
+        address _gameAddr,
         bool _status,
         uint256 _minTemplateId,
         uint256 _maxTemplateId
     ) external onlyOwner {
-        _approvedGameContract[_game].approved = _status;
-        _approvedGameContract[_game].minTemplateId = _minTemplateId;
-        _approvedGameContract[_game].maxTemplateId = _maxTemplateId;
-
-        emit GameSettingsSet(_game, _status, _minTemplateId, _maxTemplateId);
+        for (uint256 i = _minTemplateId; i <= _maxTemplateId; i++) {
+            templateApprovedGames[i][_gameAddr] = _status;
+            gameAccessTemplateIds[_gameAddr].push(i);
+        }
+        emit GamesForTemplateApproved(
+            _gameAddr,
+            _status,
+            _minTemplateId,
+            _maxTemplateId
+        );
     }
 
     /**
@@ -328,12 +334,12 @@ contract Inventory is ERC1155Base {
         uint8 _equipmentPosition,
         uint256 _amount,
         address _player
-    ) public isTemplateExists(_templateId) onlyApprovedGame returns (uint256) {
-        require(
-            _approvedGameContract[_player].minTemplateId <= _templateId &&
-                _templateId <= _approvedGameContract[_player].maxTemplateId,
-            "Inventory: Template id is the out of range"
-        );
+    )
+        public
+        isTemplateExists(_templateId)
+        onlyApprovedGame(_templateId)
+        returns (uint256)
+    {
         uint256 id;
 
         allItems.push(
@@ -385,7 +391,11 @@ contract Inventory is ERC1155Base {
         uint8 _feature4,
         uint8 _equipmentPosition,
         address _player
-    ) public onlyApprovedGame isCallerOwnedToken(_player, _tokenId) {
+    )
+        public
+        onlyApprovedGame(allItems[_tokenId].templateId)
+        isCallerOwnedToken(_player, _tokenId)
+    {
         _changeFeaturesForItem(
             _tokenId,
             _feature1,
@@ -442,9 +452,16 @@ contract Inventory is ERC1155Base {
         address _tokenOwner,
         uint256 _tokenId,
         uint256 _amount
-    ) public onlyApprovedGame isCallerOwnedToken(_tokenOwner, _tokenId) {
+    )
+        public
+        onlyApprovedGame(allItems[_tokenId].templateId)
+        isCallerOwnedToken(_tokenOwner, _tokenId)
+    {
         uint256 templateId = allItems[_tokenId].templateId;
-        require(!isTemplateUnique[templateId], "Inventory: This token is unique");
+        require(
+            !isTemplateUnique[templateId],
+            "Inventory: This token is unique"
+        );
         _mint(_tokenOwner, _tokenId, _amount, "");
 
         emit TokenAmountsIncreased(_tokenOwner, _tokenId, _amount);
@@ -457,7 +474,7 @@ contract Inventory is ERC1155Base {
      */
     function addTreasureChest(uint256 _tokenId, uint256 _rewardsAmount)
         external
-        onlyApprovedGame
+        onlyApprovedGame(allItems[_tokenId].templateId)
     {
         treasureChestRewards[_tokenId] = _rewardsAmount;
 
