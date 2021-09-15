@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 abstract contract ERC1155Base is Ownable, ERC1155 {
     using Strings for uint256;
-    mapping(uint256 => address) public creators;
 
     string public tokenURIStart;
     string public tokenURIEnd;

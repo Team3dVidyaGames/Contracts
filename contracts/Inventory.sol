@@ -37,7 +37,7 @@ contract Inventory is ERC1155Base {
     event NewTemplateAdded(
         uint256 templateId,
         uint8 equipmentPosition,
-        address user,
+        address owner,
         uint256 tokenId
     );
 
@@ -108,8 +108,8 @@ contract Inventory is ERC1155Base {
     mapping(address => uint256) public treasureHuntPoints;
 
     // Mapping for the different equipment items of each address/character
-    // 0 - head, 1 - left hand, 2 - neck, 3 - right hand, 4 - chest, 5 - legs, 6 - feet slot, 7 - cape slot, 8 - belt slot
-    mapping(address => uint256[8]) public characterEquipment;
+    // 0 - head, 1 - left hand, 2 - neck, 3 - right hand, 4 - chest, 5 - legs, 6 - feet slot, 7 - cape slot, 8 - belt slot, 9 - companion, 10 - non wearable
+    mapping(address => uint256[11]) public characterEquipment;
 
     // To check if a template exists
     mapping(uint256 => bool) public _templateExists;
@@ -140,11 +140,6 @@ contract Inventory is ERC1155Base {
             templateApprovedGames[_templateId][msg.sender],
             "Inventory: Template ID is not approved."
         );
-        _;
-    }
-
-    modifier isTokenExists(uint256 _tokenId) {
-        require(allItems[_tokenId].burned, "Inventory: Token does not exist");
         _;
     }
 
@@ -196,7 +191,7 @@ contract Inventory is ERC1155Base {
         isCallerOwnedToken(msg.sender, _tokenId)
     {
         require(
-            _equipmentPosition < 8,
+            _equipmentPosition < 11,
             "Inventory: Invalid equipment position value."
         );
         require(
@@ -215,7 +210,7 @@ contract Inventory is ERC1155Base {
      */
     function unequip(uint8 _equipmentPosition) external {
         require(
-            _equipmentPosition < 8,
+            _equipmentPosition < 11,
             "Inventory: Invalid equipment position value."
         );
         characterEquipment[msg.sender][_equipmentPosition] = 0;
@@ -274,7 +269,7 @@ contract Inventory is ERC1155Base {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
 
-        uint256 id = allItems.length - 1;
+        uint256 id = allItems.length;
 
         _mint(msg.sender, id, 1, "");
         setTokenURI(id, _templateId);
@@ -299,7 +294,7 @@ contract Inventory is ERC1155Base {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
 
-        uint256 id = allItems.length - 1;
+        uint256 id = allItems.length;
 
         _mint(_receiver, id, 1, "");
         setTokenURI(id, _templateId);
@@ -340,6 +335,12 @@ contract Inventory is ERC1155Base {
         onlyApprovedGame(_templateId)
         returns (uint256)
     {
+        if (isTemplateUnique[_templateId]) {
+            require(
+                _amount == 1,
+                "Inventory: Current template is for unique item"
+            );
+        }
         uint256 id;
 
         allItems.push(
@@ -354,7 +355,7 @@ contract Inventory is ERC1155Base {
             )
         );
 
-        id = allItems.length - 1;
+        id = allItems.length;
 
         _mint(_player, id, _amount, "");
         setTokenURI(id, _templateId);
