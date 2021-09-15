@@ -1,17 +1,15 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/introspection/ERC165Storage.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "./ERC1155Base.sol";
 
 /**
  * @title Inventory Contract
  */
-contract Inventory is ERC1155, Ownable {
+contract Inventory is ERC1155Base {
     using SafeERC20 for IERC20;
     using Address for address;
 
@@ -136,7 +134,6 @@ contract Inventory is ERC1155, Ownable {
 
     // All items created, ever, both burned and not burned
     Item[] public allItems;
-    string[] public templateURI;
 
     modifier onlyApprovedGame() {
         require(
@@ -147,14 +144,14 @@ contract Inventory is ERC1155, Ownable {
     }
 
     modifier isTokenExists(uint256 _tokenId) {
-        require(allItems[_tokenId].burned, "Invenotry: Token does not exist");
+        require(allItems[_tokenId].burned, "Inventory: Token does not exist");
         _;
     }
 
     modifier isCallerOwnedToken(address _caller, uint256 _tokenId) {
         require(
             balanceOf(_caller, _tokenId) != 0,
-            "Invenotry: Caller hasn't got this token"
+            "Inventory: Caller hasn't got this token"
         );
         _;
     }
@@ -177,13 +174,16 @@ contract Inventory is ERC1155, Ownable {
 
     /**
      * @dev Constructor function
-     * @param _uri Token URI
+     * @param _tokenURIStart Prefix of token URI "https://team3d.io/inventory/json/"
+     * @param _tokenURIEnd Back of token URI ".json"
      */
-    constructor(string memory _uri) ERC1155(_uri) {
-        _pathStart = "https://team3d.io/inventory/json/";
-        _pathEnd = ".json";
-
+    constructor(string memory _tokenURIStart, string memory _tokenURIEnd)
+        ERC1155(_tokenURIStart)
+    {
+        setTokenURIPath(_tokenURIStart, _tokenURIEnd);
         addNewTemplate(0, 0);
+
+        emit InventoryDeployed();
     }
 
     /**
@@ -197,11 +197,11 @@ contract Inventory is ERC1155, Ownable {
     {
         require(
             _equipmentPosition < 8,
-            "Invenotry: Invalid equipment position value."
+            "Inventory: Invalid equipment position value."
         );
         require(
             allItems[_tokenId].equipmentPosition == _equipmentPosition,
-            "Invenotry: Item cannot be equipped in this slot"
+            "Inventory: Item cannot be equipped in this slot"
         );
 
         characterEquipment[msg.sender][_equipmentPosition] = _tokenId;
@@ -216,7 +216,7 @@ contract Inventory is ERC1155, Ownable {
     function unequip(uint8 _equipmentPosition) external {
         require(
             _equipmentPosition < 8,
-            "Invenotry: Invalid equipment position value."
+            "Inventory: Invalid equipment position value."
         );
         characterEquipment[msg.sender][_equipmentPosition] = 0;
 
@@ -280,7 +280,6 @@ contract Inventory is ERC1155, Ownable {
         onlyOwner
         isTemplateNotExists(_templateId)
     {
-        templateURI.push(toString(_templateId));
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
         uint256 id = allItems.length - 1;
@@ -300,7 +299,6 @@ contract Inventory is ERC1155, Ownable {
         uint8 _equipmentPosition,
         address _receiver
     ) public onlyOwner isTemplateNotExists(_templateId) {
-        templateURI.push(toString(_templateId));
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
         uint256 id = allItems.length - 1;
@@ -483,28 +481,5 @@ contract Inventory is ERC1155, Ownable {
             treasureChestRewardsForToken,
             treasureHuntPoints[_owner]
         );
-    }
-
-    /**
-     * @dev Internal function to convert uint256 to string
-     * @param _i uint256 variable
-     */
-    function toString(uint256 _i) internal pure returns (string memory) {
-        if (_i == 0) {
-            return "0";
-        }
-        uint256 j = _i;
-        uint256 len;
-        while (j != 0) {
-            len++;
-            j /= 10;
-        }
-        bytes memory bstr = new bytes(len);
-        uint256 k = len - 1;
-        while (_i != 0) {
-            bstr[k--] = bytes1(uint8(48 + (_i % 10)));
-            _i /= 10;
-        }
-        return string(bstr);
     }
 }
