@@ -33,9 +33,6 @@ contract Inventory is ERC1155Base {
         uint256 maxTemplateId
     );
 
-    /// @notice Event emitted when paths set.
-    event PathsSet(string newPathStart, string newPathEnd);
-
     /// @notice Event emitted when owner added new template.
     event NewTemplateAdded(
         uint256 templateId,
@@ -76,12 +73,11 @@ contract Inventory is ERC1155Base {
         address player
     );
 
+    /// @notice Event emitted when token amount is increased.
+    event TokenAmountsIncreased(address tokenOwner, uint256 tokenId, uint256 amount);
+
     /// @notice Event emitted when treasure chest is added.
-    event TreasureChestAdded(
-        uint256 tokenId,
-        uint256 rewardsAmount,
-        address user
-    );
+    event TreasureChestAdded(uint256 tokenId, uint256 rewardsAmount);
 
     /// @notice Event emitted when token is burnt.
     event burnt(
@@ -102,7 +98,7 @@ contract Inventory is ERC1155Base {
     mapping(address => ApprovedGame) private _approvedGameContract;
 
     // Mapping from token ID to respective treasure chest rewards in VIDYA tokens
-    mapping(address => mapping(uint256 => uint256)) public treasureChestRewards;
+    mapping(uint256 => uint256) public treasureChestRewards;
 
     // Mapping to calculate how many treasure hunts an address has participated in
     mapping(address => uint256) public treasureHuntPoints;
@@ -112,7 +108,10 @@ contract Inventory is ERC1155Base {
     mapping(address => uint256[8]) public characterEquipment;
 
     // To check if a template exists
-    mapping(uint256 => bool) _templateExists;
+    mapping(uint256 => bool) public _templateExists;
+
+    // To check if items from templates can be unique or multiples
+    mapping(uint256 => bool) public isTemplateUnique;
 
     /* Item struct holds the itemId, a total of 4 additional features
     and the burned status */
@@ -181,7 +180,7 @@ contract Inventory is ERC1155Base {
         ERC1155(_tokenURIStart)
     {
         setTokenURIPath(_tokenURIStart, _tokenURIEnd);
-        addNewTemplate(0, 0);
+        addNewTemplate(0, 0, true);
 
         emit InventoryDeployed();
     }
@@ -256,34 +255,24 @@ contract Inventory is ERC1155Base {
     }
 
     /**
-     * @dev External function to set URI path. This function can be called by only owner.
-     * @param _newPathStart New start path
-     * @param _newPathEnd New end path
-     */
-    function setPaths(
-        string calldata _newPathStart,
-        string calldata _newPathEnd
-    ) external onlyOwner {
-        _pathStart = _newPathStart;
-        _pathEnd = _newPathEnd;
-
-        emit PathsSet(_newPathStart, _newPathEnd);
-    }
-
-    /**
      * @dev Public function to add new templates. This function can be called by only owner.
      * @param _templateId Id of template
      * @param _equipmentPosition Equipment position
+     * @param _isTemplateUnique Bool value if items from this template can be unique or multiple nfts
      */
-    function addNewTemplate(uint256 _templateId, uint8 _equipmentPosition)
-        public
-        onlyOwner
-        isTemplateNotExists(_templateId)
-    {
+    function addNewTemplate(
+        uint256 _templateId,
+        uint8 _equipmentPosition,
+        bool _isTemplateUnique
+    ) public onlyOwner isTemplateNotExists(_templateId) {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
+
         uint256 id = allItems.length - 1;
+
         _mint(msg.sender, id, 1, "");
+        setTokenURI(id, _templateId);
+        isTemplateUnique[_templateId] = _isTemplateUnique;
 
         emit NewTemplateAdded(_templateId, _equipmentPosition, msg.sender, id);
     }
@@ -293,16 +282,22 @@ contract Inventory is ERC1155Base {
      * @param _templateId Id of template
      * @param _equipmentPosition Equipment position
      * @param _receiver Address of receiver
+     * @param _isTemplateUnique Bool value if items from this template can be unique or multiple nfts
      */
     function addNewTemplateAndTransfer(
         uint256 _templateId,
         uint8 _equipmentPosition,
-        address _receiver
+        address _receiver,
+        bool _isTemplateUnique
     ) public onlyOwner isTemplateNotExists(_templateId) {
         _templateExists[_templateId] = true;
         allItems.push(Item(_templateId, 0, 0, 0, 0, _equipmentPosition, false));
+
         uint256 id = allItems.length - 1;
+
         _mint(_receiver, id, 1, "");
+        setTokenURI(id, _templateId);
+        isTemplateUnique[_templateId] = _isTemplateUnique;
 
         emit NewTemplateAddedAndTransferred(
             _templateId,
@@ -354,7 +349,9 @@ contract Inventory is ERC1155Base {
         );
 
         id = allItems.length - 1;
+
         _mint(_player, id, _amount, "");
+        setTokenURI(id, _templateId);
 
         emit ItemFromTemplateCreated(
             _templateId,
@@ -435,38 +432,53 @@ contract Inventory is ERC1155Base {
     }
 
     /**
+     * @dev Public function to add more tokens to already existed token Id. This function can be called by only approved game and user should be holden that token.
+     *      This function is allowed only for multiple tokens. Ex: Oxygen tank ...
+     * @param _tokenOwner Address of token owner
+     * @param _tokenId Id of Token
+     * @param _amount Amount to increase
+     */
+    function increaseTokenAmounts(
+        address _tokenOwner,
+        uint256 _tokenId,
+        uint256 _amount
+    ) public onlyApprovedGame isCallerOwnedToken(_tokenOwner, _tokenId) {
+        uint256 templateId = allItems[_tokenId].templateId;
+        require(!isTemplateUnique[templateId], "Inventory: This token is unique");
+        _mint(_tokenOwner, _tokenId, _amount, "");
+
+        emit TokenAmountsIncreased(_tokenOwner, _tokenId, _amount);
+    }
+
+    /**
      * @dev External function to add treasure chest. This function can be called by only approved games.
      * @param _tokenId Token id
      * @param _rewardsAmount Rewards amount
-     * @param _user Address of user
      */
-    function addTreasureChest(
-        uint256 _tokenId,
-        uint256 _rewardsAmount,
-        address _user
-    ) external onlyApprovedGame isCallerOwnedToken(_user, _tokenId) {
-        treasureChestRewards[_user][_tokenId] =
-            _rewardsAmount *
-            balanceOf(_user, _tokenId);
+    function addTreasureChest(uint256 _tokenId, uint256 _rewardsAmount)
+        external
+        onlyApprovedGame
+    {
+        treasureChestRewards[_tokenId] = _rewardsAmount;
 
-        emit TreasureChestAdded(_tokenId, _rewardsAmount, _user);
+        emit TreasureChestAdded(_tokenId, _rewardsAmount);
     }
 
     /**
      * @dev Public function to burn the token.
      * @param _tokenId Token id
      * @param _owner Address of token owner
+     * @param _amount Token amount
      */
-    function burn(uint256 _tokenId, address _owner)
-        public
-        isCallerOwnedToken(_owner, _tokenId)
-    {
+    function burn(
+        uint256 _tokenId,
+        address _owner,
+        uint256 _amount
+    ) public isCallerOwnedToken(_owner, _tokenId) {
         allItems[_tokenId].burned = true;
 
-        _burn(_owner, _tokenId, balanceOf(_owner, _tokenId));
-        uint256 treasureChestRewardsForToken = treasureChestRewards[_owner][
-            _tokenId
-        ];
+        _burn(_owner, _tokenId, _amount);
+        uint256 treasureChestRewardsForToken = treasureChestRewards[_tokenId];
         if (treasureChestRewardsForToken > 0) {
             treasureChestRewardToken.safeTransfer(
                 _owner,
