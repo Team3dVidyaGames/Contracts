@@ -50,14 +50,4 @@ abstract contract ERC1155Base is Ownable, ERC1155 {
         tokenURIStart = _tokenURIStart;
         tokenURIEnd = _tokenURIEnd;
     }
-
-    /**
-     * @dev External function to clear the token URI. This function can be called by only owner.
-     * @param _tokenId Token Id to clear its URI
-     */
-    function clearTokenURI(uint256 _tokenId) external onlyOwner {
-        if (bytes(_tokenURIs[_tokenId]).length != 0) {
-            delete _tokenURIs[_tokenId];
-        }
-    }
 }

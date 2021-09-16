@@ -438,14 +438,14 @@ contract Inventory is ERC1155Base {
         onlyApprovedGame(allItems[_tokenId].templateId)
         isCallerOwnedToken(_player, _tokenId)
     {
-        _changeFeaturesForItem(
-            _tokenId,
-            _feature1,
-            _feature2,
-            _feature3,
-            _feature4,
-            _equipmentPosition
-        );
+        Item storage item = allItems[_tokenId];
+
+        item.feature1 = _feature1;
+        item.feature2 = _feature2;
+        item.feature3 = _feature3;
+        item.feature4 = _feature4;
+        item.equipmentPosition = _equipmentPosition;
+
         emit FeaturesForItemChanged(
             _tokenId,
             _feature1,
@@ -455,32 +455,6 @@ contract Inventory is ERC1155Base {
             _equipmentPosition,
             _player
         );
-    }
-
-    /**
-     * @dev Internal function to change features for item.
-     * @param _tokenId Id of Token
-     * @param _feature1 Feature 1
-     * @param _feature2 Feature 2
-     * @param _feature3 Feature 3
-     * @param _feature4 Feature 4
-     * @param _equipmentPosition Equipment position
-     */
-    function _changeFeaturesForItem(
-        uint256 _tokenId,
-        uint8 _feature1,
-        uint8 _feature2,
-        uint8 _feature3,
-        uint8 _feature4,
-        uint8 _equipmentPosition
-    ) internal {
-        Item storage item = allItems[_tokenId];
-
-        item.feature1 = _feature1;
-        item.feature2 = _feature2;
-        item.feature3 = _feature3;
-        item.feature4 = _feature4;
-        item.equipmentPosition = _equipmentPosition;
     }
 
     /**
