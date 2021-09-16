@@ -143,7 +143,7 @@ contract Inventory is ERC1155Base {
     modifier onlyApprovedGame(uint256 _templateId) {
         require(
             templateApprovedGames[_templateId][msg.sender],
-            "Inventory: Template ID is not approved."
+            "not approved"
         );
         _;
     }
@@ -151,7 +151,7 @@ contract Inventory is ERC1155Base {
     modifier isCallerOwnedToken(address _caller, uint256 _tokenId) {
         require(
             balanceOf(_caller, _tokenId) != 0,
-            "Inventory: Caller hasn't got this token"
+            "invalid token"
         );
         _;
     }
@@ -159,7 +159,7 @@ contract Inventory is ERC1155Base {
     modifier isTemplateExists(uint256 _templateId) {
         require(
             templateExists[_templateId],
-            "Inventory: Template does not exist"
+            "template doesn't exist"
         );
         _;
     }
@@ -167,7 +167,7 @@ contract Inventory is ERC1155Base {
     modifier isTemplateNotExists(uint256 _templateId) {
         require(
             !templateExists[_templateId],
-            "Inventory: Template already exists"
+            "template already exist"
         );
         _;
     }
@@ -197,11 +197,11 @@ contract Inventory is ERC1155Base {
     {
         require(
             _equipmentPosition < 11,
-            "Inventory: Invalid equipment position value."
+            "invalid position"
         );
         require(
             allItems[_tokenId].equipmentPosition == _equipmentPosition,
-            "Inventory: Item cannot be equipped in this slot"
+            "cannot equip"
         );
 
         characterEquipment[msg.sender][_equipmentPosition] = _tokenId;
@@ -216,7 +216,7 @@ contract Inventory is ERC1155Base {
     function unequip(uint8 _equipmentPosition) external {
         require(
             _equipmentPosition < 11,
-            "Inventory: Invalid equipment position value."
+            "invalid position"
         );
         characterEquipment[msg.sender][_equipmentPosition] = 0;
 
@@ -336,7 +336,7 @@ contract Inventory is ERC1155Base {
         if (isTemplateUnique[_templateId]) {
             require(
                 _amount == 1,
-                "Inventory: Current template is for unique item"
+                "multiple template"
             );
         }
         uint256 id = allItems.length;
@@ -438,7 +438,7 @@ contract Inventory is ERC1155Base {
 
         require(
             !isTemplateUnique[templateId],
-            "Inventory: This token is unique"
+            "unique template"
         );
 
         _mint(_tokenOwner, _tokenId, _amount, "");
@@ -477,7 +477,7 @@ contract Inventory is ERC1155Base {
     ) public isCallerOwnedToken(_owner, _tokenId) {
         require(
             _amount <= balanceOf(_owner, _tokenId),
-            "Inventory: Burn amount is out of range"
+            "invalid amount"
         );
 
         uint256 templateId = allItems[_tokenId].templateId;
