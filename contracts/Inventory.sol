@@ -181,7 +181,7 @@ contract Inventory is ERC1155Base {
         ERC1155(_tokenURIStart)
     {
         setTokenURIPath(_tokenURIStart, _tokenURIEnd);
-        addNewTemplate(0, 0, true);
+        addNewTemplate(0, 0, msg.sender, true);
 
         emit InventoryDeployed();
     }
@@ -261,52 +261,13 @@ contract Inventory is ERC1155Base {
     }
 
     /**
-     * @dev Public function to add new templates. This function can be called by only owner.
-     * @param _templateId Id of template
-     * @param _equipmentPosition Equipment position
-     * @param _isTemplateUnique Bool value if items from this template can be unique or multiple nfts
-     */
-    function addNewTemplate(
-        uint256 _templateId,
-        uint8 _equipmentPosition,
-        bool _isTemplateUnique
-    ) public onlyOwner isTemplateNotExists(_templateId) {
-        uint256 id = allItems.length;
-
-        templateExists[_templateId] = true;
-        allItems.push(
-            Item(
-                _templateId,
-                0,
-                0,
-                0,
-                0,
-                _equipmentPosition,
-                false,
-                msg.sender,
-                id,
-                1
-            )
-        );
-
-        _mint(msg.sender, id, 1, "");
-        setTokenURI(id, _templateId);
-
-        isTemplateUnique[_templateId] = _isTemplateUnique;
-        itemCountsPerTemplate[_templateId]++;
-        itemOwnedCountsPerTemplate[msg.sender][_templateId]++;
-
-        emit NewTemplateAdded(_templateId, _equipmentPosition, msg.sender, id);
-    }
-
-    /**
-     * @dev Public function to add new template and transfer it to user. This function can be called by only owner.
+     * @dev Public function to add new template and transfer it to receiver. This function can be called by only owner.
      * @param _templateId Id of template
      * @param _equipmentPosition Equipment position
      * @param _receiver Address of receiver
      * @param _isTemplateUnique Bool value if items from this template can be unique or multiple nfts
      */
-    function addNewTemplateAndTransfer(
+    function addNewTemplate(
         uint256 _templateId,
         uint8 _equipmentPosition,
         address _receiver,
