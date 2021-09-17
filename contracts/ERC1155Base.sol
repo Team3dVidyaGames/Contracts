@@ -21,7 +21,6 @@ abstract contract ERC1155Base is Ownable, ERC1155 {
     function getTokenURI(uint256 _tokenId)
         external
         view
-        onlyOwner
         returns (string memory)
     {
         return _tokenURIs[_tokenId];
