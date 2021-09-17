@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ERC1155Base.sol";
 
 /**
@@ -103,6 +103,13 @@ contract Inventory is ERC1155Base {
     // To see how many and which template ids current game holds
     mapping(address => uint256[]) public gameAccessTemplateIds;
 
+    // Total item counts each template holds
+    mapping(uint256 => uint256) public itemCountsPerTemplate;
+
+    // Total item counts which any one user holds by template
+    mapping(address => mapping(uint256 => uint256))
+        public itemOwnedCountsPerTemplate;
+
     /* Item struct holds the templateId, a total of 4 additional features
     and the burned status */
     struct Item {
@@ -119,22 +126,28 @@ contract Inventory is ERC1155Base {
     Item[] public allItems;
 
     modifier onlyApprovedGame(uint256 _templateId) {
-        require(templateApprovedGames[_templateId][msg.sender], "game is not approved");
+        require(
+            templateApprovedGames[_templateId][msg.sender],
+            "game is not approved"
+        );
         _;
     }
 
-    modifier isCallerOwnedToken(address _caller, uint256 _tokenId) {
-        require(balanceOf(_caller, _tokenId) != 0, "caller doesn't own this token");
+    modifier isTokenOwner(address _caller, uint256 _tokenId) {
+        require(
+            balanceOf(_caller, _tokenId) != 0,
+            "caller doesn't own this token"
+        );
         _;
     }
 
-    modifier isTemplateExists(uint256 _templateId) {
+    modifier doesTemplateExist(uint256 _templateId) {
         require(templateExists[_templateId], "template doesn't exist");
         _;
     }
 
-    modifier isTemplateNotExists(uint256 _templateId) {
-        require(!templateExists[_templateId], "template already exist");
+    modifier doesTemplateNotExist(uint256 _templateId) {
+        require(!templateExists[_templateId], "template already exists");
         _;
     }
 
@@ -163,7 +176,7 @@ contract Inventory is ERC1155Base {
      */
     function equip(uint256 _tokenId, uint8 _equipmentPosition)
         external
-        isCallerOwnedToken(msg.sender, _tokenId)
+        isTokenOwner(msg.sender, _tokenId)
     {
         require(_equipmentPosition < 11, "invalid position");
         require(
@@ -236,7 +249,7 @@ contract Inventory is ERC1155Base {
         uint8 _equipmentPosition,
         address _receiver,
         bool _isTemplateUnique
-    ) public onlyOwner isTemplateNotExists(_templateId) {
+    ) public onlyOwner doesTemplateNotExist(_templateId) {
         uint256 id = allItems.length;
 
         templateExists[_templateId] = true;
@@ -246,13 +259,10 @@ contract Inventory is ERC1155Base {
         setTokenURI(id, _templateId);
 
         isTemplateUnique[_templateId] = _isTemplateUnique;
+        itemCountsPerTemplate[_templateId]++;
+        itemOwnedCountsPerTemplate[_receiver][_templateId]++;
 
-        emit NewTemplateAdded(
-            _templateId,
-            _equipmentPosition,
-            _receiver,
-            id
-        );
+        emit NewTemplateAdded(_templateId, _equipmentPosition, _receiver, id);
     }
 
     /**
@@ -278,7 +288,7 @@ contract Inventory is ERC1155Base {
         address _player
     )
         public
-        isTemplateExists(_templateId)
+        doesTemplateExist(_templateId)
         onlyApprovedGame(_templateId)
         returns (uint256)
     {
@@ -301,6 +311,9 @@ contract Inventory is ERC1155Base {
 
         _mint(_player, id, _amount, "");
         setTokenURI(id, _templateId);
+
+        itemCountsPerTemplate[_templateId] += _amount;
+        itemOwnedCountsPerTemplate[_player][_templateId] += _amount;
 
         emit ItemFromTemplateCreated(
             _templateId,
@@ -337,7 +350,7 @@ contract Inventory is ERC1155Base {
     )
         public
         onlyApprovedGame(allItems[_tokenId].templateId)
-        isCallerOwnedToken(_player, _tokenId)
+        isTokenOwner(_player, _tokenId)
     {
         Item storage item = allItems[_tokenId];
 
@@ -372,13 +385,16 @@ contract Inventory is ERC1155Base {
     )
         public
         onlyApprovedGame(allItems[_tokenId].templateId)
-        isCallerOwnedToken(_tokenOwner, _tokenId)
+        isTokenOwner(_tokenOwner, _tokenId)
     {
         uint256 templateId = allItems[_tokenId].templateId;
 
         require(!isTemplateUnique[templateId], "unique template");
 
         _mint(_tokenOwner, _tokenId, _amount, "");
+
+        itemCountsPerTemplate[templateId] += _amount;
+        itemOwnedCountsPerTemplate[_tokenOwner][templateId] += _amount;
 
         emit TokenAmountsIncreased(_tokenOwner, _tokenId, _amount);
     }
@@ -407,14 +423,17 @@ contract Inventory is ERC1155Base {
         uint256 _tokenId,
         address _owner,
         uint256 _amount
-    ) public isCallerOwnedToken(_owner, _tokenId) {
-        require(_amount <= balanceOf(_owner, _tokenId), "invalid amount to burn");
+    ) public isTokenOwner(_owner, _tokenId) {
+        uint256 templateId = allItems[_tokenId].templateId;
 
         _burn(_owner, _tokenId, _amount);
 
         if (balanceOf(_owner, _tokenId) == 0) {
             allItems[_tokenId].burned = true;
         }
+
+        itemCountsPerTemplate[templateId] -= _amount;
+        itemOwnedCountsPerTemplate[_owner][templateId] -= _amount;
 
         uint256 treasureChestRewardsForToken = treasureChestRewards[_tokenId];
 
