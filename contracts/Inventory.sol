@@ -89,9 +89,8 @@ contract Inventory is ERC1155Base {
         uint256 treasureHuntPoints
     );
 
-    // Treasure chest reward token (VIDYA)
-    IERC20 public constant treasureChestRewardToken =
-        IERC20(0x3D3D35bb9bEC23b06Ca00fe472b50E7A4c692C30);
+    // Treasure chest reward token
+    IERC20 public treasureChestRewardToken;
 
     // Mapping of contract addresses that are allowed to edit item features
     mapping(uint256 => mapping(address => bool)) public templateApprovedGames;
@@ -176,10 +175,12 @@ contract Inventory is ERC1155Base {
      * @dev Constructor function
      * @param _tokenURIStart Prefix of token URI "https://team3d.io/inventory/json/"
      * @param _tokenURIEnd Back of token URI ".json"
+     * @param _rewardToken Interface of reward token (VIDYA: 0x3D3D35bb9bEC23b06Ca00fe472b50E7A4c692C30)
      */
-    constructor(string memory _tokenURIStart, string memory _tokenURIEnd)
+    constructor(string memory _tokenURIStart, string memory _tokenURIEnd, IERC20 _rewardToken)
         ERC1155(_tokenURIStart)
     {
+        treasureChestRewardToken = _rewardToken;
         setTokenURIPath(_tokenURIStart, _tokenURIEnd);
         addNewTemplate(0, 0, msg.sender, true);
 
