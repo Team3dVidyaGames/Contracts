@@ -20,7 +20,7 @@ contract Inventory is ERC1155Base {
     /// @notice Event emitted when withdrew any ERC20 tokens.
     event ERC20TokensWithdrew(address tokenAddress, uint256 amount);
 
-    /// @notice Event emitted when game settings set.
+    /// @notice Event emitted when game is approved with template.
     event GamesForTemplateApproved(
         address gameAddr,
         bool status,
@@ -33,14 +33,6 @@ contract Inventory is ERC1155Base {
         uint256 templateId,
         uint8 equipmentPosition,
         address owner,
-        uint256 tokenId
-    );
-
-    /// @notice Event emitted when owner added new template and transferred it to receiver.
-    event NewTemplateAddedAndTransferred(
-        uint256 templateId,
-        uint8 equipmentPosition,
-        address receiver,
         uint256 tokenId
     );
 
@@ -89,7 +81,7 @@ contract Inventory is ERC1155Base {
     // Treasure chest reward token
     IERC20 public treasureChestRewardToken;
 
-    // Mapping of contract addresses that are allowed to edit item features
+    // Mapping of contract addresses that are allowed to create and edit item features
     mapping(uint256 => mapping(address => bool)) public templateApprovedGames;
 
     // Mapping from token ID to respective treasure chest rewards in VIDYA tokens
@@ -111,7 +103,7 @@ contract Inventory is ERC1155Base {
     // To see how many and which template ids current game holds
     mapping(address => uint256[]) public gameAccessTemplateIds;
 
-    /* Item struct holds the itemId, a total of 4 additional features
+    /* Item struct holds the templateId, a total of 4 additional features
     and the burned status */
     struct Item {
         uint256 templateId; // id of Template in the itemTemplates array
@@ -127,12 +119,12 @@ contract Inventory is ERC1155Base {
     Item[] public allItems;
 
     modifier onlyApprovedGame(uint256 _templateId) {
-        require(templateApprovedGames[_templateId][msg.sender], "not approved");
+        require(templateApprovedGames[_templateId][msg.sender], "game is not approved");
         _;
     }
 
     modifier isCallerOwnedToken(address _caller, uint256 _tokenId) {
-        require(balanceOf(_caller, _tokenId) != 0, "invalid token");
+        require(balanceOf(_caller, _tokenId) != 0, "caller doesn't own this token");
         _;
     }
 
@@ -255,7 +247,7 @@ contract Inventory is ERC1155Base {
 
         isTemplateUnique[_templateId] = _isTemplateUnique;
 
-        emit NewTemplateAddedAndTransferred(
+        emit NewTemplateAdded(
             _templateId,
             _equipmentPosition,
             _receiver,
@@ -416,7 +408,7 @@ contract Inventory is ERC1155Base {
         address _owner,
         uint256 _amount
     ) public isCallerOwnedToken(_owner, _tokenId) {
-        require(_amount <= balanceOf(_owner, _tokenId), "invalid amount");
+        require(_amount <= balanceOf(_owner, _tokenId), "invalid amount to burn");
 
         _burn(_owner, _tokenId, _amount);
 
