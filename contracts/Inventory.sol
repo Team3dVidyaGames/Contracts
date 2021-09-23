@@ -71,12 +71,16 @@ contract Inventory is ERC1155Base {
     event TreasureChestAdded(uint256 tokenId, uint256 rewardsAmount);
 
     /// @notice Event emitted when token is burnt.
-    event burnt(
+    event Burnt(
         address owner,
         uint256 tokenId,
+        uint256 amount,
         uint256 treasureChestRewardsForToken,
         uint256 treasureHuntPoints
     );
+
+    /// @notice Event emitted when token is minted.
+    event Minted(address user, uint256 tokenId, uint256 amount);
 
     // Treasure chest reward token
     IERC20 public treasureChestRewardToken;
@@ -105,10 +109,6 @@ contract Inventory is ERC1155Base {
 
     // Total item counts each template holds
     mapping(uint256 => uint256) public itemCountsPerTemplate;
-
-    // Total item counts which any one user holds by template
-    mapping(address => mapping(uint256 => uint256))
-        public itemOwnedCountsPerTemplate;
 
     /* Item struct holds the templateId, a total of 4 additional features
     and the burned status */
@@ -260,7 +260,6 @@ contract Inventory is ERC1155Base {
 
         isTemplateUnique[_templateId] = _isTemplateUnique;
         itemCountsPerTemplate[_templateId]++;
-        itemOwnedCountsPerTemplate[_receiver][_templateId]++;
 
         emit NewTemplateAdded(_templateId, _equipmentPosition, _receiver, id);
     }
@@ -313,7 +312,6 @@ contract Inventory is ERC1155Base {
         setTokenURI(id, _templateId);
 
         itemCountsPerTemplate[_templateId] += _amount;
-        itemOwnedCountsPerTemplate[_player][_templateId] += _amount;
 
         emit ItemFromTemplateCreated(
             _templateId,
@@ -394,7 +392,6 @@ contract Inventory is ERC1155Base {
         _mint(_tokenOwner, _tokenId, _amount, "");
 
         itemCountsPerTemplate[templateId] += _amount;
-        itemOwnedCountsPerTemplate[_tokenOwner][templateId] += _amount;
 
         emit TokenAmountsIncreased(_tokenOwner, _tokenId, _amount);
     }
@@ -415,13 +412,13 @@ contract Inventory is ERC1155Base {
 
     /**
      * @dev Public function to burn the token.
-     * @param _tokenId Token id
      * @param _owner Address of token owner
+     * @param _tokenId Token id
      * @param _amount Token amount
      */
     function burn(
-        uint256 _tokenId,
         address _owner,
+        uint256 _tokenId,
         uint256 _amount
     ) public isTokenOwner(_owner, _tokenId) {
         uint256 templateId = allItems[_tokenId].templateId;
@@ -433,7 +430,6 @@ contract Inventory is ERC1155Base {
         }
 
         itemCountsPerTemplate[templateId] -= _amount;
-        itemOwnedCountsPerTemplate[_owner][templateId] -= _amount;
 
         uint256 treasureChestRewardsForToken = treasureChestRewards[_tokenId];
 
@@ -445,11 +441,28 @@ contract Inventory is ERC1155Base {
             treasureHuntPoints[_owner]++;
         }
 
-        emit burnt(
+        emit Burnt(
             _owner,
             _tokenId,
+            _amount,
             treasureChestRewardsForToken,
             treasureHuntPoints[_owner]
         );
+    }
+
+    /**
+     * @dev External function to mint the token.
+     * @param _user Address of user
+     * @param _tokenId Token id
+     * @param _amount Token amount
+     */
+    function mint(
+        address _user,
+        uint256 _tokenId,
+        uint256 _amount
+    ) external onlyApprovedGame(allItems[_tokenId].templateId) {
+        _mint(_user, _tokenId, _amount, "");
+
+        emit Minted(_user, _tokenId, _amount);
     }
 }
