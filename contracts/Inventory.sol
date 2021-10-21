@@ -425,7 +425,7 @@ contract Inventory is ERC1155Base {
         address _owner,
         uint256 _tokenId,
         uint256 _amount
-    ) public isTokenOwner(_owner, _tokenId) {
+    ) public isTokenOwner(_owner, _tokenId) returns(bool){
         uint256 templateId = allItems[_tokenId].templateId;
 
         _burn(_owner, _tokenId, _amount);
@@ -445,7 +445,7 @@ contract Inventory is ERC1155Base {
             );
             treasureHuntPoints[_owner]++;
         }
-
+        return true;
         emit Burnt(
             _owner,
             _tokenId,
