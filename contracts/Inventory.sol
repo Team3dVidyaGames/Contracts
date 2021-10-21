@@ -79,9 +79,6 @@ contract Inventory is ERC1155Base {
         uint256 treasureHuntPoints
     );
 
-    /// @notice Event emitted when token is minted.
-    event Minted(address user, uint256 tokenId, uint256 amount);
-
     // Treasure chest reward token
     IERC20 public treasureChestRewardToken;
 
@@ -109,6 +106,9 @@ contract Inventory is ERC1155Base {
 
     // Total item counts each template holds
     mapping(uint256 => uint256) public itemCountsPerTemplate;
+    
+    //Tracks Non-unique tokenIds by TemplateId
+    mapping(uint256 => uint256) multiTokenIdByTemplateID;
 
     /* Item struct holds the templateId, a total of 4 additional features
     and the burned status */
@@ -257,7 +257,9 @@ contract Inventory is ERC1155Base {
 
         _mint(_receiver, id, 1, "");
         setTokenURI(id, _templateId);
-
+        if(_isTemplateUnique){
+            multiTokenIdByTemplateID[_templateID] = id;
+        }
         isTemplateUnique[_templateId] = _isTemplateUnique;
         itemCountsPerTemplate[_templateId]++;
 
@@ -291,25 +293,28 @@ contract Inventory is ERC1155Base {
         onlyApprovedGame(_templateId)
         returns (uint256)
     {
+        uint256 id;
         if (isTemplateUnique[_templateId]) {
             require(_amount == 1, "multiple template");
+            id = allItems.length;
+
+            allItems.push(
+                Item(
+                    _templateId,
+                    _feature1,
+                    _feature2,
+                    _feature3,
+                    _feature4,
+                    _equipmentPosition,
+                    false
+                )
+            );
+            _mint(_player, id, _amount, "");
+            setTokenURI(id, _templateId);
+        }else{
+            id = multiTokenIdByTemplateID[_templateID];
+            _mint(_player, id, _amount, "");
         }
-        uint256 id = allItems.length;
-
-        allItems.push(
-            Item(
-                _templateId,
-                _feature1,
-                _feature2,
-                _feature3,
-                _feature4,
-                _equipmentPosition,
-                false
-            )
-        );
-
-        _mint(_player, id, _amount, "");
-        setTokenURI(id, _templateId);
 
         itemCountsPerTemplate[_templateId] += _amount;
 
@@ -450,19 +455,4 @@ contract Inventory is ERC1155Base {
         );
     }
 
-    /**
-     * @dev External function to mint the token.
-     * @param _user Address of user
-     * @param _tokenId Token id
-     * @param _amount Token amount
-     */
-    function mint(
-        address _user,
-        uint256 _tokenId,
-        uint256 _amount
-    ) external onlyApprovedGame(allItems[_tokenId].templateId) {
-        _mint(_user, _tokenId, _amount, "");
-
-        emit Minted(_user, _tokenId, _amount);
-    }
 }
