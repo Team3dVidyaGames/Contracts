@@ -257,7 +257,7 @@ contract Inventory is ERC1155Base {
 
         _mint(_receiver, id, 1, "");
         setTokenURI(id, _templateId);
-        if(_isTemplateUnique){
+        if(!_isTemplateUnique){
             multiTokenIdByTemplateID[_templateID] = id;
         }
         isTemplateUnique[_templateId] = _isTemplateUnique;
@@ -430,7 +430,7 @@ contract Inventory is ERC1155Base {
 
         _burn(_owner, _tokenId, _amount);
 
-        if (balanceOf(_owner, _tokenId) == 0) {
+        if (balanceOf(_owner, _tokenId) == 0 && isTemplateUnique[templateId]) {
             allItems[_tokenId].burned = true;
         }
 
