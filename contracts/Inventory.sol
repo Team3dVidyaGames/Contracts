@@ -106,7 +106,7 @@ contract Inventory is ERC1155Base {
 
     // Total item counts each template holds
     mapping(uint256 => uint256) public itemCountsPerTemplate;
-    
+
     //Tracks Non-unique tokenIds by TemplateId
     mapping(uint256 => uint256) multiTokenIdByTemplateID;
 
@@ -257,8 +257,8 @@ contract Inventory is ERC1155Base {
 
         _mint(_receiver, id, 1, "");
         setTokenURI(id, _templateId);
-        if(_isTemplateUnique){
-            multiTokenIdByTemplateID[_templateID] = id;
+        if (_isTemplateUnique) {
+            multiTokenIdByTemplateID[_templateId] = id;
         }
         isTemplateUnique[_templateId] = _isTemplateUnique;
         itemCountsPerTemplate[_templateId]++;
@@ -311,8 +311,8 @@ contract Inventory is ERC1155Base {
             );
             _mint(_player, id, _amount, "");
             setTokenURI(id, _templateId);
-        }else{
-            id = multiTokenIdByTemplateID[_templateID];
+        } else {
+            id = multiTokenIdByTemplateID[_templateId];
             _mint(_player, id, _amount, "");
         }
 
@@ -454,5 +454,4 @@ contract Inventory is ERC1155Base {
             treasureHuntPoints[_owner]
         );
     }
-
 }
