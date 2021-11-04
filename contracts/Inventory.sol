@@ -454,8 +454,4 @@ contract Inventory is ERC1155Base {
             treasureHuntPoints[_owner]
         );
     }
-    
-    function gameApproved(uint256 _templateID, address _game) external veiw returns(bool){
-        return templateApprovedGames[_templateID][_game];
-    }
 }
