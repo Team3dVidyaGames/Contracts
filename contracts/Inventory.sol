@@ -5,38 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./ERC1155Base.sol";
 
 /**
- * @title Inventory Contract
+ * @title Team3D's Inventory V3
  */
 contract Inventory is ERC1155Base {
-    /// @notice Event emitted only on construction.
-    event InventoryDeployed();
-
-    /// @notice Event emitted when user equipped with position.
-    event Equipped(address user, uint256 tokenId, uint8 position);
-
-    /// @notice Event emitted when user unequipped with position.
-    event Unequipped(address user, uint8 position);
-
-    /// @notice Event emitted when withdrew any ERC20 tokens.
-    event ERC20TokensWithdrew(address tokenAddress, uint256 amount);
-
-    /// @notice Event emitted when game is approved with template.
-    event GamesForTemplateApproved(
-        address gameAddr,
-        bool status,
-        uint256 minTemplateId,
-        uint256 maxTemplateId
-    );
-
-    /// @notice Event emitted when owner added new template.
-    event NewTemplateAdded(
-        uint256 templateId,
-        uint8 equipmentPosition,
-        address owner,
-        uint256 tokenId
-    );
-
-    /// @notice Event emitted when approved game created item from template.
+    /// @notice Event emitted when an approved game created a new item based on a template.
     event ItemFromTemplateCreated(
         uint256 templateId,
         uint8 feature1,
@@ -49,7 +21,7 @@ contract Inventory is ERC1155Base {
         uint256 tokenId
     );
 
-    /// @notice Event emitted when approved game changed feautres of item.
+    /// @notice Event emitted when an approved game changed features of an item.
     event FeaturesForItemChanged(
         uint256 tokenId,
         uint8 feature1,
@@ -60,17 +32,14 @@ contract Inventory is ERC1155Base {
         address player
     );
 
-    /// @notice Event emitted when token amount is increased.
+    /// @notice Event emitted when a token's amount (supply, balance) is increased.
     event TokenAmountsIncreased(
         address tokenOwner,
         uint256 tokenId,
         uint256 amount
     );
 
-    /// @notice Event emitted when treasure chest is added.
-    event TreasureChestAdded(uint256 tokenId, uint256 rewardsAmount);
-
-    /// @notice Event emitted when token is burnt.
+    /// @notice Event emitted when a token is burnt.
     event Burnt(
         address owner,
         uint256 tokenId,
@@ -82,7 +51,7 @@ contract Inventory is ERC1155Base {
     // Treasure chest reward token
     IERC20 public treasureChestRewardToken;
 
-    // Mapping of contract addresses that are allowed to create and edit item features
+    // Mapping of contract addresses that are allowed to create items and edit item features based on a templateId 
     mapping(uint256 => mapping(address => bool)) public templateApprovedGames;
 
     // Mapping from token ID to respective treasure chest rewards in VIDYA tokens
@@ -101,16 +70,16 @@ contract Inventory is ERC1155Base {
     // To check if items from templates can be unique or multiples
     mapping(uint256 => bool) public isTemplateUnique;
 
-    // To see how many and which template ids current game holds
+    // To see how many and which template ids current game has access to
     mapping(address => uint256[]) public gameAccessTemplateIds;
 
     // Total item counts each template holds
     mapping(uint256 => uint256) public itemCountsPerTemplate;
 
     //Tracks Non-unique tokenIds by TemplateId
-    mapping(uint256 => uint256) multiTokenIdByTemplateID;
+    mapping(uint256 => uint256) public multiTokenIdByTemplateID;
 
-    /* Item struct holds the templateId, a total of 4 additional features
+    /* Item struct holds the templateId, a total of 4 additional features, equipment position 
     and the burned status */
     struct Item {
         uint256 templateId; // id of Template in the itemTemplates array
@@ -128,7 +97,7 @@ contract Inventory is ERC1155Base {
     modifier onlyApprovedGame(uint256 _templateId) {
         require(
             templateApprovedGames[_templateId][msg.sender],
-            "game is not approved"
+            "Inventory: Game is not approved for modifying this token"
         );
         _;
     }
@@ -136,25 +105,25 @@ contract Inventory is ERC1155Base {
     modifier isTokenOwner(address _caller, uint256 _tokenId) {
         require(
             balanceOf(_caller, _tokenId) != 0,
-            "caller doesn't own this token"
+            "Inventory: Caller doesn't own this token"
         );
         _;
     }
 
     modifier doesTemplateExist(uint256 _templateId) {
-        require(templateExists[_templateId], "template doesn't exist");
+        require(templateExists[_templateId], "Inventory: Template doesn't exist");
         _;
     }
 
     modifier doesTemplateNotExist(uint256 _templateId) {
-        require(!templateExists[_templateId], "template already exists");
+        require(!templateExists[_templateId], "Inventory: Template already exists");
         _;
     }
 
     /**
      * @dev Constructor function
      * @param _tokenURIStart Prefix of token URI "https://team3d.io/inventory/json/"
-     * @param _tokenURIEnd Back of token URI ".json"
+     * @param _tokenURIEnd Suffix of token URI ".json"
      * @param _rewardToken Interface of reward token (VIDYA: 0x3D3D35bb9bEC23b06Ca00fe472b50E7A4c692C30)
      */
     constructor(
@@ -165,12 +134,10 @@ contract Inventory is ERC1155Base {
         treasureChestRewardToken = _rewardToken;
         setTokenURIPath(_tokenURIStart, _tokenURIEnd);
         addNewTemplate(0, 0, msg.sender, true);
-
-        emit InventoryDeployed();
     }
 
     /**
-     * @dev External function to equip. This function can be called when only token is existed.
+     * @dev External function to equip items. This function can be called only by the owner of the token.
      * @param _tokenId Token Id
      * @param _equipmentPosition Position of equipment
      */
@@ -178,15 +145,13 @@ contract Inventory is ERC1155Base {
         external
         isTokenOwner(msg.sender, _tokenId)
     {
-        require(_equipmentPosition < 11, "invalid position");
+        require(_equipmentPosition < 11, "Inventory: Equip to invalid position");
         require(
             allItems[_tokenId].equipmentPosition == _equipmentPosition,
-            "cannot equip"
+            "Inventory: Equip to wrong position"
         );
 
         characterEquipment[msg.sender][_equipmentPosition] = _tokenId;
-
-        emit Equipped(msg.sender, _tokenId, _equipmentPosition);
     }
 
     /**
@@ -194,10 +159,8 @@ contract Inventory is ERC1155Base {
      * @param _equipmentPosition Position of equipment
      */
     function unequip(uint8 _equipmentPosition) external {
-        require(_equipmentPosition < 11, "invalid position");
+        require(_equipmentPosition < 11, "Inventory: Unequip from invalid position");
         characterEquipment[msg.sender][_equipmentPosition] = 0;
-
-        emit Unequipped(msg.sender, _equipmentPosition);
     }
 
     /**
@@ -208,12 +171,10 @@ contract Inventory is ERC1155Base {
         IERC20 token = IERC20(_tokenContract);
         uint256 amount = token.balanceOf(address(this));
         token.transfer(msg.sender, amount);
-
-        emit ERC20TokensWithdrew(_tokenContract, amount);
     }
 
     /**
-     * @dev External function to approve games for templates. This function can be called by only owner.
+     * @dev External function to approve games to modify items. This function can be called by only owner.
      * @param _gameAddr Address of game
      * @param _status Game status(Approve or disapprove)
      * @param _minTemplateId Minimum template id
@@ -229,12 +190,6 @@ contract Inventory is ERC1155Base {
             templateApprovedGames[i][_gameAddr] = _status;
             gameAccessTemplateIds[_gameAddr].push(i);
         }
-        emit GamesForTemplateApproved(
-            _gameAddr,
-            _status,
-            _minTemplateId,
-            _maxTemplateId
-        );
     }
 
     /**
@@ -262,12 +217,10 @@ contract Inventory is ERC1155Base {
         }
         isTemplateUnique[_templateId] = _isTemplateUnique;
         itemCountsPerTemplate[_templateId]++;
-
-        emit NewTemplateAdded(_templateId, _equipmentPosition, _receiver, id);
     }
 
     /**
-     * @dev Public function to create item from templates. This function can be called by approved games only.
+     * @dev Public function to create item from template. This function can be called by approved games only.
      * @param _templateId Id of template
      * @param _feature1 Feature 1
      * @param _feature2 Feature 2
@@ -295,7 +248,7 @@ contract Inventory is ERC1155Base {
     {
         uint256 id;
         if (isTemplateUnique[_templateId]) {
-            require(_amount == 1, "multiple template");
+            require(_amount == 1, "Inventory: _templateId is set to unique with a fixed supply of 1.");
             id = allItems.length;
 
             allItems.push(
@@ -333,7 +286,7 @@ contract Inventory is ERC1155Base {
     }
 
     /**
-     * @dev Public function to change features for item. This function can be called by approved games only.
+     * @dev Public function to change features of item. This function can be called by approved games only.
      * @param _tokenId Id of Token
      * @param _feature1 Feature 1
      * @param _feature2 Feature 2
@@ -375,7 +328,7 @@ contract Inventory is ERC1155Base {
     }
 
     /**
-     * @dev Public function to add more tokens to already existed token Id. This function can be called by only approved game and user should be holden that token.
+     * @dev Public function to add more tokens to already existing token Id. This function can be called by only approved game and _tokenOwner should be holding that token.
      *      This function is allowed only for multiple tokens. Ex: Oxygen tank ...
      * @param _tokenOwner Address of token owner
      * @param _tokenId Id of Token
@@ -392,7 +345,7 @@ contract Inventory is ERC1155Base {
     {
         uint256 templateId = allItems[_tokenId].templateId;
 
-        require(!isTemplateUnique[templateId], "unique template");
+        require(!isTemplateUnique[templateId], "Inventory: Cannot increase supply of unique token.");
 
         _mint(_tokenOwner, _tokenId, _amount, "");
 
@@ -411,8 +364,6 @@ contract Inventory is ERC1155Base {
         onlyApprovedGame(allItems[_tokenId].templateId)
     {
         treasureChestRewards[_tokenId] = _rewardsAmount;
-
-        emit TreasureChestAdded(_tokenId, _rewardsAmount);
     }
 
     /**
@@ -453,5 +404,35 @@ contract Inventory is ERC1155Base {
             treasureChestRewardsForToken,
             treasureHuntPoints[_owner]
         );
+    }
+
+    // Return an array of tokenIds and balances _who owns 
+    function getTokenIdsAndBalances(address _who) public view returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](allItems.length);
+        for(uint256 i = 0; i < allItems.length; i++) {
+            uint256 balance = balanceOf(_who, i);
+            if(balance > 0) {
+                result[i] = balance;
+            }
+        }
+        return result;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        uint256 result;
+
+        for (uint i = 0; i < allItems.length; i++) {
+            result = result + itemCountsPerTemplate[i];
+        }
+
+        return result;
+    }
+
+    function name() public pure returns (string memory) {
+        return "Inventory V3";
+    }
+
+    function symbol() public pure returns (string memory) {
+        return "ITEM";
     }
 }
