@@ -2,7 +2,7 @@
 pragma solidity ^0.8.6;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./ERC1155Base.sol";
+import "./V3ERC1155Base.sol";
 
 /**
  * @title Team3D's Inventory V3
