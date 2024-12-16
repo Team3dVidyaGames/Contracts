@@ -1,5 +1,50 @@
-/build
-/node_modules
+# If you prefer the allow list template instead of the deny list, see community template:
+# https://github.com/github/gitignore/blob/main/community/Golang/Go.AllowList.gitignore
+#
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+node_modules
 .env
-secret.kovan.json
-/public
+
+# Hardhat files
+/cache
+/artifacts
+
+# TypeChain files
+/typechain
+/typechain-types
+
+# solidity-coverage files
+/coverage
+/coverage.json
+
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
+
+.idea
+.env
+node_modules
+artifacts
+typechain-types
+cache
+coverage
+coverage.json
+.DS_Store
+.vscode
+out
+cache_forge
+forge-artifacts
+
+# protocol
+bin/
+
+# Custom
+.secrets/
