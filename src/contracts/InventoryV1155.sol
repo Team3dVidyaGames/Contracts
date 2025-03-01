@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "../lib/openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "../lib/openzeppelin/contracts/access/AccessControl.sol";
+import "../../lib/openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import "../../lib/openzeppelin/contracts/access/AccessControl.sol";
 
 contract InventoryV1155 is AccessControl, ERC1155 {
     uint256 public tokenID = 1;
