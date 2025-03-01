@@ -33,23 +33,23 @@ func CreateRootCommand() *cobra.Command {
 func CreateCompletionCommand(rootCmd *cobra.Command) *cobra.Command {
 	completionCmd := &cobra.Command{
 		Use:   "completion",
-		Short: "Generate shell completion scripts for multipass",
-		Long: `Generate shell completion scripts for multipass.
+		Short: "Generate shell completion scripts for inventory",
+		Long: `Generate shell completion scripts for inventory.
 
 The command for each shell will print a completion script to stdout. You can source this script to get
 completions in your current shell session. You can add this script to the completion directory for your
 shell to get completions for all future sessions.
 
 For example, to activate bash completions in your current shell:
-		$ . <(multipass completion bash)
+		$ . <(inventory completion bash)
 
-To add multipass completions for all bash sessions:
-		$ multipass completion bash > /etc/bash_completion.d/multipass_completions`,
+To add inventory completions for all bash sessions:
+		$ inventory completion bash > /etc/bash_completion.d/inventory_completions`,
 	}
 
 	bashCompletionCmd := &cobra.Command{
 		Use:   "bash",
-		Short: "bash completions for multipass",
+		Short: "bash completions for inventory",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenBashCompletion(cmd.OutOrStdout())
 		},
@@ -57,7 +57,7 @@ To add multipass completions for all bash sessions:
 
 	zshCompletionCmd := &cobra.Command{
 		Use:   "zsh",
-		Short: "zsh completions for multipass",
+		Short: "zsh completions for inventory",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenZshCompletion(cmd.OutOrStdout())
 		},
@@ -65,7 +65,7 @@ To add multipass completions for all bash sessions:
 
 	fishCompletionCmd := &cobra.Command{
 		Use:   "fish",
-		Short: "fish completions for multipass",
+		Short: "fish completions for inventory",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenFishCompletion(cmd.OutOrStdout(), true)
 		},
@@ -73,7 +73,7 @@ To add multipass completions for all bash sessions:
 
 	powershellCompletionCmd := &cobra.Command{
 		Use:   "powershell",
-		Short: "powershell completions for multipass",
+		Short: "powershell completions for inventory",
 		Run: func(cmd *cobra.Command, args []string) {
 			rootCmd.GenPowerShellCompletion(cmd.OutOrStdout())
 		},
