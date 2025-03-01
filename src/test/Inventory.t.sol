@@ -29,12 +29,8 @@ contract InventoryV1155Test is Test {
         attributeId[0] = 1;
         attributeId[1] = 2;
 
-        InventoryV1155.Item memory item = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item1",
-            1
-        );
+        InventoryV1155.Item memory item =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item1", 1);
 
         inventory.addItem(item);
         assertEq(inventory.tokenExist(1), true);
@@ -48,12 +44,8 @@ contract InventoryV1155Test is Test {
         updatedAttributeData[0] = 50;
         updatedAttributeId[0] = 1;
 
-        InventoryV1155.Item memory updatedItem = InventoryV1155.Item(
-            updatedAttributeData,
-            updatedAttributeId,
-            "https://token-uri.com/item1-updated",
-            1
-        );
+        InventoryV1155.Item memory updatedItem =
+            InventoryV1155.Item(updatedAttributeData, updatedAttributeId, "https://token-uri.com/item1-updated", 1);
 
         inventory.updateItemData(updatedItem, 1);
         assertEq(inventory.uri(1), "https://token-uri.com/item1-updated");
