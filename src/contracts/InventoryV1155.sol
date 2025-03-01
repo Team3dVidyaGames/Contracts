@@ -37,29 +37,19 @@ contract InventoryV1155 is AccessControl, ERC1155 {
 
     function addItem(Item memory newItem) external onlyRole(ADMIN_ROLE) {
         if (newItem.attributeId.length != newItem.attributeData.length) {
-            revert ItemDataAndIDMisMatch(
-                msg.sender,
-                newItem.attributeData.length
-            );
+            revert ItemDataAndIDMisMatch(msg.sender, newItem.attributeData.length);
         }
         for (uint256 i = 0; i < newItem.attributeData.length; i++) {
-            itemAttributeInfo[tokenID][newItem.attributeId[i]] = newItem
-                .attributeData[i];
+            itemAttributeInfo[tokenID][newItem.attributeId[i]] = newItem.attributeData[i];
         }
         itemData[tokenID] = newItem;
         tokenID++;
         emit ItemAdded(tokenID - 1, msg.sender);
     }
 
-    function updateItemData(
-        Item memory updateItem,
-        uint256 tokenId
-    ) external onlyRole(ADMIN_ROLE) {
+    function updateItemData(Item memory updateItem, uint256 tokenId) external onlyRole(ADMIN_ROLE) {
         if (updateItem.attributeId.length != updateItem.attributeData.length) {
-            revert ItemDataAndIDMisMatch(
-                msg.sender,
-                updateItem.attributeData.length
-            );
+            revert ItemDataAndIDMisMatch(msg.sender, updateItem.attributeData.length);
         }
         if (!tokenExist(tokenId)) {
             revert TokenDoesNotExist(tokenId);
@@ -74,8 +64,7 @@ contract InventoryV1155 is AccessControl, ERC1155 {
 
         //add new attribute information
         for (uint256 i = 0; i < updateItem.attributeData.length; i++) {
-            itemAttributeInfo[tokenID][updateItem.attributeId[i]] = updateItem
-                .attributeData[i];
+            itemAttributeInfo[tokenID][updateItem.attributeId[i]] = updateItem.attributeData[i];
         }
 
         itemData[tokenId] = updateItem;
@@ -91,22 +80,14 @@ contract InventoryV1155 is AccessControl, ERC1155 {
         }
     }
 
-    function mint(
-        address to,
-        uint256 tokenId,
-        uint256 amount
-    ) external onlyRole(MINTER_ROLE) {
+    function mint(address to, uint256 tokenId, uint256 amount) external onlyRole(MINTER_ROLE) {
         if (!tokenExist(tokenId)) {
             revert TokenDoesNotExist(tokenId);
         }
         _mint(to, tokenId, amount, "");
     }
 
-    function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) external onlyRole(MINTER_ROLE) {
+    function mintBatch(address to, uint256[] memory ids, uint256[] memory values) external onlyRole(MINTER_ROLE) {
         for (uint256 i = 0; i < ids.length; i++) {
             if (!tokenExist(ids[i])) {
                 revert TokenDoesNotExist(ids[i]);
@@ -123,11 +104,7 @@ contract InventoryV1155 is AccessControl, ERC1155 {
         _burn(from, id, value);
     }
 
-    function burnBatch(
-        address from,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) external {
+    function burnBatch(address from, uint256[] memory ids, uint256[] memory values) external {
         address sender = msg.sender;
         if (from != sender && !isApprovedForAll(from, sender)) {
             revert ERC1155MissingApprovalForAll(sender, from);
@@ -135,9 +112,7 @@ contract InventoryV1155 is AccessControl, ERC1155 {
         _burnBatch(from, ids, values);
     }
 
-    function fullBalanceOf(
-        address account
-    ) external view returns (uint256[] memory) {
+    function fullBalanceOf(address account) external view returns (uint256[] memory) {
         uint256[] memory batchBalances = new uint256[](tokenID);
 
         for (uint256 i = 1; i < tokenID; i++) {
@@ -151,11 +126,8 @@ contract InventoryV1155 is AccessControl, ERC1155 {
         return (tokenId < tokenID && tokenId != 0);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(AccessControl, ERC1155) returns (bool) {
-        bool truth = (AccessControl.supportsInterface(interfaceId) ||
-            ERC1155.supportsInterface(interfaceId));
+    function supportsInterface(bytes4 interfaceId) public view override(AccessControl, ERC1155) returns (bool) {
+        bool truth = (AccessControl.supportsInterface(interfaceId) || ERC1155.supportsInterface(interfaceId));
         return truth;
     }
 }
