@@ -1,5 +1,5 @@
 # InventoryV1155
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/e9b19f861bd6d58a97f0c8bad0531b0068444c23/src/contracts/InventoryV1155.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/8aeb926b6bb8ebeefff16a446c767100764956ab/src/contracts/InventoryV1155.sol)
 
 **Inherits:**
 AccessControl, ERC1155

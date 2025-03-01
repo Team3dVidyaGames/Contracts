@@ -16,7 +16,6 @@ clean-web3:
 	rm -rf node_modules
 
 forge:
-	npm install
 	forge build
 
 docs:
