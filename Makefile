@@ -17,6 +17,7 @@ clean-web3:
 
 forge:
 	forge build
+	forge fmt
 
 docs:
 	forge doc

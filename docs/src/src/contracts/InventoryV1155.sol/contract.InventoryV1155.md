@@ -1,5 +1,5 @@
 # InventoryV1155
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/df9cc330ec4d0d891a5db363426e9a072fb032e5/src/contracts/InventoryV1155.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/789b90002d85c08b9f1e1eaa2a627b10338a7910/src/contracts/InventoryV1155.sol)
 
 **Inherits:**
 AccessControl, ERC1155
@@ -117,6 +117,27 @@ function tokenExist(uint256 tokenId) public view returns (bool);
 
 ```solidity
 function supportsInterface(bytes4 interfaceId) public view override(AccessControl, ERC1155) returns (bool);
+```
+
+### getCharacterSlot
+
+
+```solidity
+function getCharacterSlot(uint256 tokenId) external view returns (uint256);
+```
+
+### itemAttributeIdDetail
+
+
+```solidity
+function itemAttributeIdDetail(uint256 tokenId, uint256 attributeId) external view returns (uint256);
+```
+
+### getItemAttributes
+
+
+```solidity
+function getItemAttributes(uint256 tokenId) external view returns (uint256[] memory, uint256[] memory);
 ```
 
 ## Events
