@@ -5,75 +5,15 @@ import "../../../lib/openzeppelin/contracts/access/AccessControl.sol";
 import "../../../lib/openzeppelin/contracts/utils/Context.sol";
 import "../../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import "../interfaces/IInventoryV1155.sol";
+import "../interfaces/IMerchantV1.sol";
 
 /**
  * @title MerchantV1
  * @dev A contract for managing the sale of ERC1155 tokens with role-based access control
  * and reentrancy protection. Allows adding merchandise, purchasing items, and managing inventory.
  */
-contract MerchantV1 is AccessControl, ReentrancyGuard {
-    // Events
-    event TreasuryUpdated(
-        address indexed oldTreasury,
-        address indexed newTreasury
-    );
-    event InventoryUpdated(
-        address indexed oldInventory,
-        address indexed newInventory
-    );
-    event MerchandiseAdded(
-        uint256 indexed merchandiseId,
-        uint256 indexed tokenId,
-        uint256 unitPrice,
-        uint256 quantity
-    );
-    event MerchandisePurchased(
-        uint256 indexed merchandiseId,
-        address indexed buyer,
-        uint256 quantity,
-        uint256 totalPrice
-    );
-    event MerchandiseBatchPurchased(
-        address indexed buyer,
-        uint256[] merchandiseIds,
-        uint256[] quantities,
-        uint256 totalPrice
-    );
-    event MerchandiseRestocked(
-        uint256 indexed merchandiseId,
-        uint256 addedQuantity,
-        uint256 newTotalQuantity
-    );
-    event MerchandiseStatusChanged(
-        uint256 indexed merchandiseId,
-        bool isActive
-    );
-    event MerchandisePriceUpdated(
-        uint256 indexed merchandiseId,
-        uint256 oldPrice,
-        uint256 newPrice
-    );
-    event Withdrawal(address indexed to, uint256 amount);
-
+contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
     bytes32 public SHOP_ROLE = "SHOP_ROLE";
-
-    /**
-     * @dev Structure to store merchandise information
-     * @param tokenId The ERC1155 token ID
-     * @param unitPrice Price per unit in wei
-     * @param quantity Available quantity for sale
-     * @param sold Number of units sold
-     * @param isActive Whether the merchandise is available for purchase
-     * @param isSoldOut Whether the merchandise is sold out
-     */
-    struct Merchandise {
-        uint256 tokenId;
-        uint256 unitPrice;
-        uint256 quantity;
-        uint256 sold;
-        bool isActive;
-        bool isSoldOut;
-    }
 
     address public treasury;
     address public inventory1155;
