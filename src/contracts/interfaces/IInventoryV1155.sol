@@ -64,6 +64,6 @@ interface IInventoryV1155 {
     function burnBatch(
         address from,
         uint256[] memory ids,
-        uint256[] values
+        uint256[] memory values
     ) external;
 }

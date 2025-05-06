@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-import "../../lib/openzeppelin/contracts/access/AccessControl.sol";
-import "../../lib/openzeppelin/contracts/context/Context.sol";
-import "../../lib/openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "../interfaces/IInventory1155.sol";
+import "../../../lib/openzeppelin/contracts/access/AccessControl.sol";
+import "../../../lib/openzeppelin/contracts/utils/Context.sol";
+import "../../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "../interfaces/IInventoryV1155.sol";
 
 /**
  * @title MerchantV1
@@ -190,11 +190,10 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
         uint256 value = msg.value;
         payable(treasury).transfer(value);
         _buyMerchandise(merchandiseId, quantity, value);
-        IInventory1155(inventory1155).mint(
+        IInventoryV1155(inventory1155).mint(
             _msgSender(),
-            _merchandise.tokenId,
-            quantity,
-            ""
+            merchandise[merchandiseId].tokenId,
+            quantity
         );
         emit MerchandisePurchased(merchandiseId, _msgSender(), quantity, value);
     }
@@ -219,11 +218,10 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
                 remainingValue
             );
         }
-        IInventory1155(inventory1155).mintBatch(
+        IInventoryV1155(inventory1155).mintBatch(
             _msgSender(),
             merchandiseIds,
-            quantities,
-            ""
+            quantities
         );
         emit MerchandiseBatchPurchased(
             _msgSender(),
@@ -261,7 +259,7 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
             "Token ID already used"
         );
 
-        uint256 remainingValue = value - (_merchandise.unitPrice * quantity);
+        remainingValue = value - (_merchandise.unitPrice * quantity);
         tokenIdsUsed[_merchandise.tokenId] = true;
         _merchandise.quantity -= quantity;
         _merchandise.sold += quantity;
@@ -292,6 +290,44 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
     }
 
     /**
+     * @dev Returns an array of all token IDs used in merchandise
+     * @return Array of token IDs
+     */
+    function getTokenIdsUsed() external view returns (uint256[] memory) {
+        uint256[] memory tokenIds = new uint256[](merchandiseCount);
+        for (uint256 i = 0; i < merchandiseCount; i++) {
+            tokenIds[i] = merchandise[i].tokenId;
+        }
+        return tokenIds;
+    }
+
+    /**
+     * @dev Returns the unit price and active status of a merchandise item
+     * @param merchandiseId The ID of the merchandise
+     * @return unitPrice The unit price in wei
+     * @return isActive The active status of the merchandise
+     */
+    function getUnitPrice(
+        uint256 merchandiseId
+    ) external view returns (uint256, bool) {
+        return (
+            merchandise[merchandiseId].unitPrice,
+            merchandise[merchandiseId].isActive
+        );
+    }
+
+    /**
+     * @dev Checks if a token ID has been used in any merchandise
+     * @param merchandiseId The ID of the merchandise to check
+     * @return Boolean indicating if the token ID is used
+     */
+    function getTokenIdUsed(
+        uint256 merchandiseId
+    ) external view returns (bool) {
+        return tokenIdsUsed[merchandise[merchandiseId].tokenId];
+    }
+
+    /**
      * @dev Restocks a merchandise item with additional quantity
      * @param merchandiseId The ID of the merchandise to restock
      * @param quantity The quantity to add
@@ -309,29 +345,6 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
             quantity,
             oldQuantity + quantity
         );
-    }
-
-    /**
-     * @dev Returns an array of all token IDs used in merchandise
-     * @return Array of token IDs
-     */
-    function getTokenIdsUsed() external view returns (uint256[] memory) {
-        uint256[] memory tokenIds = new uint256[](merchandiseCount);
-        for (uint256 i = 0; i < merchandiseCount; i++) {
-            tokenIds[i] = merchandise[i].tokenId;
-        }
-        return tokenIds;
-    }
-
-    /**
-     * @dev Checks if a token ID has been used in any merchandise
-     * @param merchandiseId The ID of the merchandise to check
-     * @return Boolean indicating if the token ID is used
-     */
-    function getTokenIdUsed(
-        uint256 merchandiseId
-    ) external view returns (bool) {
-        return tokenIdsUsed[merchandise[merchandiseId].tokenId];
     }
 
     // Withdraw
