@@ -162,6 +162,7 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
         uint256 unitPrice,
         uint256 quantity
     ) public onlyRole(SHOP_ROLE) {
+        require(tokenIdsUsed[tokenId] == false, "Token ID already used");
         merchandise[merchandiseCount] = Merchandise({
             tokenId: tokenId,
             unitPrice: unitPrice,
@@ -170,6 +171,7 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
             isActive: true,
             isSoldOut: false
         });
+        tokenIdsUsed[tokenId] = true;
         emit MerchandiseAdded(merchandiseCount, tokenId, unitPrice, quantity);
         merchandiseCount++;
     }
@@ -211,6 +213,11 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
     ) public payable nonReentrant {
         uint256 remainingValue = msg.value;
         payable(treasury).transfer(remainingValue);
+        require(
+            merchandiseIds.length == quantities.length,
+            "Array lengths must match"
+        );
+        require(merchandiseIds.length > 0, "Empty arrays");
         for (uint256 i = 0; i < merchandiseIds.length; i++) {
             remainingValue = _buyMerchandise(
                 merchandiseIds[i],
@@ -253,10 +260,6 @@ contract MerchantV1 is AccessControl, ReentrancyGuard {
         require(
             value >= _merchandise.unitPrice * quantity,
             "Insufficient balance"
-        );
-        require(
-            tokenIdsUsed[_merchandise.tokenId] == false,
-            "Token ID already used"
         );
 
         remainingValue = value - (_merchandise.unitPrice * quantity);
