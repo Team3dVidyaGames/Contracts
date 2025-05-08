@@ -7,13 +7,23 @@ import "../src/contracts/InventoryV1155.sol";
 
 // Event definitions for testing
 event TreasuryUpdated(address indexed oldTreasury, address indexed newTreasury);
+
 event InventoryUpdated(address indexed oldInventory, address indexed newInventory);
+
 event MerchandiseAdded(uint256 indexed merchandiseId, uint256 indexed tokenId, uint256 unitPrice, uint256 quantity);
+
 event MerchandisePurchased(uint256 indexed merchandiseId, address indexed buyer, uint256 quantity, uint256 totalPrice);
-event MerchandiseBatchPurchased(address indexed buyer, uint256[] merchandiseIds, uint256[] quantities, uint256 totalPrice);
+
+event MerchandiseBatchPurchased(
+    address indexed buyer, uint256[] merchandiseIds, uint256[] quantities, uint256 totalPrice
+);
+
 event MerchandiseRestocked(uint256 indexed merchandiseId, uint256 addedQuantity, uint256 newTotalQuantity);
+
 event MerchandiseStatusChanged(uint256 indexed merchandiseId, bool isActive);
+
 event MerchandisePriceUpdated(uint256 indexed merchandiseId, uint256 oldPrice, uint256 newPrice);
+
 event Withdrawal(address indexed to, uint256 amount);
 
 contract MerchantV1Test is Test {
@@ -49,19 +59,11 @@ contract MerchantV1Test is Test {
         attributeData[0] = 10;
         attributeId[0] = 1;
 
-        InventoryV1155.Item memory item1 = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item1",
-            1
-        );
+        InventoryV1155.Item memory item1 =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item1", 1);
 
-        InventoryV1155.Item memory item2 = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item2",
-            2
-        );
+        InventoryV1155.Item memory item2 =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item2", 2);
 
         inventory.addItem(item1);
         inventory.addItem(item2);
@@ -157,7 +159,7 @@ contract MerchantV1Test is Test {
         vm.prank(shop);
         merchant.setMerchandiseUnitPrice(1, 2 ether);
 
-        (uint256 unitPrice, ) = merchant.getUnitPrice(1);
+        (uint256 unitPrice,) = merchant.getUnitPrice(1);
         assertEq(unitPrice, 2 ether);
     }
 
@@ -217,9 +219,7 @@ contract MerchantV1Test is Test {
 
         vm.deal(buyer, 20 ether);
         vm.prank(buyer);
-        vm.expectRevert(
-            bytes("Quantity is greater than the available quantity")
-        );
+        vm.expectRevert(bytes("Quantity is greater than the available quantity"));
         merchant.buyMerchandise{value: 20 ether}(1, 20);
     }
 
@@ -320,10 +320,10 @@ contract MerchantV1Test is Test {
     function testTreasuryBalance() public {
         vm.deal(address(merchant), 1 ether);
         uint256 initialBalance = treasury.balance;
-        
+
         vm.prank(admin);
         merchant.withdraw();
-        
+
         assertEq(treasury.balance, initialBalance + 1 ether);
         assertEq(address(merchant).balance, 0);
     }

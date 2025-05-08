@@ -40,9 +40,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param _treasury The new treasury address
      * @notice Only callable by admin role
      */
-    function setTreasury(
-        address _treasury
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setTreasury(address _treasury) public onlyRole(DEFAULT_ADMIN_ROLE) {
         address oldTreasury = treasury;
         treasury = _treasury;
         emit TreasuryUpdated(oldTreasury, _treasury);
@@ -53,9 +51,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param _inventory1155 The new inventory contract address
      * @notice Only callable by admin role
      */
-    function setInventory1155(
-        address _inventory1155
-    ) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setInventory1155(address _inventory1155) public onlyRole(DEFAULT_ADMIN_ROLE) {
         address oldInventory = inventory1155;
         inventory1155 = _inventory1155;
         emit InventoryUpdated(oldInventory, _inventory1155);
@@ -67,10 +63,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param isActive The new active status
      * @notice Only callable by shop role
      */
-    function setMerchandiseActive(
-        uint256 merchandiseId,
-        bool isActive
-    ) external onlyRole(SHOP_ROLE) {
+    function setMerchandiseActive(uint256 merchandiseId, bool isActive) external onlyRole(SHOP_ROLE) {
         merchandise[merchandiseId].isActive = isActive;
         emit MerchandiseStatusChanged(merchandiseId, isActive);
     }
@@ -81,10 +74,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param unitPrice The new unit price in wei
      * @notice Only callable by shop role
      */
-    function setMerchandiseUnitPrice(
-        uint256 merchandiseId,
-        uint256 unitPrice
-    ) external onlyRole(SHOP_ROLE) {
+    function setMerchandiseUnitPrice(uint256 merchandiseId, uint256 unitPrice) external onlyRole(SHOP_ROLE) {
         uint256 oldPrice = merchandise[merchandiseId].unitPrice;
         merchandise[merchandiseId].unitPrice = unitPrice;
         emit MerchandisePriceUpdated(merchandiseId, oldPrice, unitPrice);
@@ -97,11 +87,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param quantity Initial quantity available
      * @notice Only callable by shop role
      */
-    function addMerchandise(
-        uint256 tokenId,
-        uint256 unitPrice,
-        uint256 quantity
-    ) public onlyRole(SHOP_ROLE) {
+    function addMerchandise(uint256 tokenId, uint256 unitPrice, uint256 quantity) public onlyRole(SHOP_ROLE) {
         require(tokenIdsUsed[tokenId] == false, "Token ID already used");
         merchandise[merchandiseCount] = Merchandise({
             tokenId: tokenId,
@@ -125,18 +111,11 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @notice Requires exact payment amount in wei
      * @notice Protected against reentrancy attacks
      */
-    function buyMerchandise(
-        uint256 merchandiseId,
-        uint256 quantity
-    ) public payable nonReentrant {
+    function buyMerchandise(uint256 merchandiseId, uint256 quantity) public payable nonReentrant {
         uint256 value = msg.value;
         payable(treasury).transfer(value);
         _buyMerchandise(merchandiseId, quantity, value);
-        IInventoryV1155(inventory1155).mint(
-            _msgSender(),
-            merchandise[merchandiseId].tokenId,
-            quantity
-        );
+        IInventoryV1155(inventory1155).mint(_msgSender(), merchandise[merchandiseId].tokenId, quantity);
         emit MerchandisePurchased(merchandiseId, _msgSender(), quantity, value);
     }
 
@@ -147,35 +126,20 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @notice Requires exact payment amount in wei
      * @notice Protected against reentrancy attacks
      */
-    function buyMerchandiseBatch(
-        uint256[] memory merchandiseIds,
-        uint256[] memory quantities
-    ) public payable nonReentrant {
+    function buyMerchandiseBatch(uint256[] memory merchandiseIds, uint256[] memory quantities)
+        public
+        payable
+        nonReentrant
+    {
         uint256 remainingValue = msg.value;
         payable(treasury).transfer(remainingValue);
-        require(
-            merchandiseIds.length == quantities.length,
-            "Array lengths must match"
-        );
+        require(merchandiseIds.length == quantities.length, "Array lengths must match");
         require(merchandiseIds.length > 0, "Empty arrays");
         for (uint256 i = 0; i < merchandiseIds.length; i++) {
-            remainingValue = _buyMerchandise(
-                merchandiseIds[i],
-                quantities[i],
-                remainingValue
-            );
+            remainingValue = _buyMerchandise(merchandiseIds[i], quantities[i], remainingValue);
         }
-        IInventoryV1155(inventory1155).mintBatch(
-            _msgSender(),
-            merchandiseIds,
-            quantities
-        );
-        emit MerchandiseBatchPurchased(
-            _msgSender(),
-            merchandiseIds,
-            quantities,
-            msg.value
-        );
+        IInventoryV1155(inventory1155).mintBatch(_msgSender(), merchandiseIds, quantities);
+        emit MerchandiseBatchPurchased(_msgSender(), merchandiseIds, quantities, msg.value);
     }
 
     /**
@@ -185,22 +149,15 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param value The payment amount in wei
      * @return remainingValue The remaining value after purchase
      */
-    function _buyMerchandise(
-        uint256 merchandiseId,
-        uint256 quantity,
-        uint256 value
-    ) internal returns (uint256 remainingValue) {
+    function _buyMerchandise(uint256 merchandiseId, uint256 quantity, uint256 value)
+        internal
+        returns (uint256 remainingValue)
+    {
         Merchandise storage _merchandise = merchandise[merchandiseId];
         require(_merchandise.isActive, "Merchandise is not active");
         require(_merchandise.isSoldOut == false, "Merchandise is sold out");
-        require(
-            quantity <= _merchandise.quantity,
-            "Quantity is greater than the available quantity"
-        );
-        require(
-            value >= _merchandise.unitPrice * quantity,
-            "Insufficient balance"
-        );
+        require(quantity <= _merchandise.quantity, "Quantity is greater than the available quantity");
+        require(value >= _merchandise.unitPrice * quantity, "Insufficient balance");
 
         remainingValue = value - (_merchandise.unitPrice * quantity);
         tokenIdsUsed[_merchandise.tokenId] = true;
@@ -218,9 +175,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param merchandiseId The ID of the merchandise
      * @return Merchandise struct containing all merchandise details
      */
-    function getMerchandise(
-        uint256 merchandiseId
-    ) external view returns (Merchandise memory) {
+    function getMerchandise(uint256 merchandiseId) external view returns (Merchandise memory) {
         return merchandise[merchandiseId];
     }
 
@@ -250,13 +205,8 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @return unitPrice The unit price in wei
      * @return isActive The active status of the merchandise
      */
-    function getUnitPrice(
-        uint256 merchandiseId
-    ) external view returns (uint256, bool) {
-        return (
-            merchandise[merchandiseId].unitPrice,
-            merchandise[merchandiseId].isActive
-        );
+    function getUnitPrice(uint256 merchandiseId) external view returns (uint256, bool) {
+        return (merchandise[merchandiseId].unitPrice, merchandise[merchandiseId].isActive);
     }
 
     /**
@@ -264,9 +214,7 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param merchandiseId The ID of the merchandise to check
      * @return Boolean indicating if the token ID is used
      */
-    function getTokenIdUsed(
-        uint256 merchandiseId
-    ) external view returns (bool) {
+    function getTokenIdUsed(uint256 merchandiseId) external view returns (bool) {
         return tokenIdsUsed[merchandise[merchandiseId].tokenId];
     }
 
@@ -276,18 +224,11 @@ contract MerchantV1 is IMerchantV1, AccessControl, ReentrancyGuard {
      * @param quantity The quantity to add
      * @notice Only callable by shop role
      */
-    function restockMerchandise(
-        uint256 merchandiseId,
-        uint256 quantity
-    ) public onlyRole(SHOP_ROLE) {
+    function restockMerchandise(uint256 merchandiseId, uint256 quantity) public onlyRole(SHOP_ROLE) {
         uint256 oldQuantity = merchandise[merchandiseId].quantity;
         merchandise[merchandiseId].quantity += quantity;
         merchandise[merchandiseId].isSoldOut = false;
-        emit MerchandiseRestocked(
-            merchandiseId,
-            quantity,
-            oldQuantity + quantity
-        );
+        emit MerchandiseRestocked(merchandiseId, quantity, oldQuantity + quantity);
     }
 
     // Withdraw

@@ -31,12 +31,8 @@ contract InventoryV1155Test is Test {
         attributeId[0] = 1;
         attributeId[1] = 2;
 
-        InventoryV1155.Item memory item = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item1",
-            1
-        );
+        InventoryV1155.Item memory item =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item1", 1);
 
         inventory.addItem(item);
         assertEq(inventory.tokenExist(1), true);
@@ -50,12 +46,8 @@ contract InventoryV1155Test is Test {
         updatedAttributeData[0] = 50;
         updatedAttributeId[0] = 1;
 
-        InventoryV1155.Item memory updatedItem = InventoryV1155.Item(
-            updatedAttributeData,
-            updatedAttributeId,
-            "https://token-uri.com/item1-updated",
-            1
-        );
+        InventoryV1155.Item memory updatedItem =
+            InventoryV1155.Item(updatedAttributeData, updatedAttributeId, "https://token-uri.com/item1-updated", 1);
 
         inventory.updateItemData(updatedItem, 1);
         assertEq(inventory.uri(1), "https://token-uri.com/item1-updated");
@@ -123,10 +115,7 @@ contract InventoryV1155Test is Test {
 
     function testGetItemAttributes() public {
         testAddItem();
-        (
-            uint256[] memory attributeIds,
-            uint256[] memory attributeData
-        ) = inventory.getItemAttributes(1);
+        (uint256[] memory attributeIds, uint256[] memory attributeData) = inventory.getItemAttributes(1);
         assertEq(attributeIds[0], 1);
         assertEq(attributeIds[1], 2);
         assertEq(attributeData[0], 10);
@@ -152,20 +141,10 @@ contract InventoryV1155Test is Test {
         attributeData[1] = 20;
         attributeId[0] = 1;
 
-        InventoryV1155.Item memory item = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item1",
-            1
-        );
+        InventoryV1155.Item memory item =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item1", 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                InventoryV1155.ItemDataAndIDMisMatch.selector,
-                admin,
-                2
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(InventoryV1155.ItemDataAndIDMisMatch.selector, admin, 2));
         inventory.addItem(item);
     }
 
@@ -175,30 +154,16 @@ contract InventoryV1155Test is Test {
         attributeData[0] = 50;
         attributeId[0] = 1;
 
-        InventoryV1155.Item memory updatedItem = InventoryV1155.Item(
-            attributeData,
-            attributeId,
-            "https://token-uri.com/item1-updated",
-            1
-        );
+        InventoryV1155.Item memory updatedItem =
+            InventoryV1155.Item(attributeData, attributeId, "https://token-uri.com/item1-updated", 1);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                InventoryV1155.TokenDoesNotExist.selector,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(InventoryV1155.TokenDoesNotExist.selector, 999));
         inventory.updateItemData(updatedItem, 999);
     }
 
     function testMintNonExistentToken() public {
         vm.prank(minter);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                InventoryV1155.TokenDoesNotExist.selector,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(InventoryV1155.TokenDoesNotExist.selector, 999));
         inventory.mint(user, 999, 1);
     }
 
@@ -213,12 +178,7 @@ contract InventoryV1155Test is Test {
         testAddItem(); // Add token 1 first
 
         vm.prank(minter);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                InventoryV1155.TokenDoesNotExist.selector,
-                999
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(InventoryV1155.TokenDoesNotExist.selector, 999));
         inventory.mintBatch(user, ids, amounts);
     }
 
@@ -228,11 +188,7 @@ contract InventoryV1155Test is Test {
         address unauthorized = vm.addr(3);
         vm.prank(unauthorized);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IERC1155Errors.ERC1155MissingApprovalForAll.selector,
-                unauthorized,
-                user
-            )
+            abi.encodeWithSelector(IERC1155Errors.ERC1155MissingApprovalForAll.selector, unauthorized, user)
         );
         inventory.burn(user, 1, 1);
     }
@@ -248,11 +204,7 @@ contract InventoryV1155Test is Test {
         address unauthorized = vm.addr(3);
         vm.prank(unauthorized);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IERC1155Errors.ERC1155MissingApprovalForAll.selector,
-                unauthorized,
-                user
-            )
+            abi.encodeWithSelector(IERC1155Errors.ERC1155MissingApprovalForAll.selector, unauthorized, user)
         );
         inventory.burnBatch(user, ids, amounts);
     }

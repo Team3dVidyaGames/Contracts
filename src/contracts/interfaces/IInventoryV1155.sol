@@ -20,10 +20,7 @@ interface IInventoryV1155 {
     // View functions
     function tokenID() external view returns (uint256);
 
-    function itemAttributeInfo(
-        uint256,
-        uint256
-    ) external view returns (uint256);
+    function itemAttributeInfo(uint256, uint256) external view returns (uint256);
 
     function uri(uint256 tokenId) external view returns (string memory);
 
@@ -31,18 +28,11 @@ interface IInventoryV1155 {
 
     function getCharacterSlot(uint256 tokenId) external view returns (uint256);
 
-    function itemAttributeIdDetail(
-        uint256 tokenId,
-        uint256 attributeId
-    ) external view returns (uint256);
+    function itemAttributeIdDetail(uint256 tokenId, uint256 attributeId) external view returns (uint256);
 
-    function getItemAttributes(
-        uint256 tokenId
-    ) external view returns (uint256[] memory, uint256[] memory);
+    function getItemAttributes(uint256 tokenId) external view returns (uint256[] memory, uint256[] memory);
 
-    function fullBalanceOf(
-        address account
-    ) external view returns (uint256[] memory);
+    function fullBalanceOf(address account) external view returns (uint256[] memory);
 
     function supportsInterface(bytes4 interfaceId) external view returns (bool);
 
@@ -53,17 +43,9 @@ interface IInventoryV1155 {
 
     function mint(address to, uint256 tokenId, uint256 amount) external;
 
-    function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) external;
+    function mintBatch(address to, uint256[] memory ids, uint256[] memory values) external;
 
     function burn(address from, uint256 id, uint256 value) external;
 
-    function burnBatch(
-        address from,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) external;
+    function burnBatch(address from, uint256[] memory ids, uint256[] memory values) external;
 }
