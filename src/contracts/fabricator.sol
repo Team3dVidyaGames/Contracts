@@ -58,6 +58,8 @@ contract Fabricator is ReentrancyGuard {
 
     function _recipeAdjustment(uint256 _recipeId, Recipe memory _recipe) internal {
         Recipe storage r = recipes[_recipeId];
+        require(_recipe.items1155.length < 21, "Too many items1155");
+        require(_recipe.items20.length < 21, "Too many items20");
         if (_recipe.items1155.length > 0) {
             for (uint256 i = 0; i < _recipe.items1155.length; i++) {
                 r.items1155.push(_recipe.items1155[i]);
