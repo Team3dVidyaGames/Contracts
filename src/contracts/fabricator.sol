@@ -46,31 +46,46 @@ contract Fabricator is ReentrancyGuard {
     constructor() {}
 
     modifier onlyRole(bytes32 role, address contractAddress) {
-        require(IAccessControl(contractAddress).hasRole(role, msg.sender), "Caller is not a role");
+        require(
+            IAccessControl(contractAddress).hasRole(role, msg.sender),
+            "Caller is not a role"
+        );
         _;
     }
 
-    function addRecipe(Recipe memory _recipe) external onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress) {
+    function addRecipe(
+        Recipe memory _recipe
+    ) external onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress) {
         require(isMinter(_recipe.mintItem.contractAddress), "Is not Minter");
         _recipeAdjustment(recipeCount, _recipe);
         recipeCount++;
     }
 
-    function _recipeAdjustment(uint256 _recipeId, Recipe memory _recipe) internal {
+    function _recipeAdjustment(
+        uint256 _recipeId,
+        Recipe memory _recipe
+    ) internal {
         Recipe storage r = recipes[_recipeId];
-        for (uint256 i = 0; i < _recipe.items1155.length; i++) {
-            r.items1155.push(_recipe.items1155[i]);
+        if (_recipe.items1155.length > 0) {
+            for (uint256 i = 0; i < _recipe.items1155.length; i++) {
+                r.items1155.push(_recipe.items1155[i]);
+            }
+            r.item1155Index = r.items1155.length - 1;
         }
-        r.item1155Index = r.items1155.length - 1;
-        for (uint256 i = 0; i < _recipe.items20.length; i++) {
-            r.items20.push(_recipe.items20[i]);
+        if (_recipe.items20.length > 0) {
+            for (uint256 i = 0; i < _recipe.items20.length; i++) {
+                r.items20.push(_recipe.items20[i]);
+            }
+            r.item20Index = r.items20.length - 1;
         }
-        r.item20Index = r.items20.length - 1;
+        require(_recipe.creator != address(0), "Creator not set");
         r.creator = _recipe.creator;
         r.mintItem = _recipe.mintItem;
     }
 
-    function removeRecipe(uint256 _recipeId)
+    function removeRecipe(
+        uint256 _recipeId
+    )
         external
         onlyRole(ADMIN_ROLE, recipes[_recipeId].mintItem.contractAddress)
     {
@@ -79,58 +94,89 @@ contract Fabricator is ReentrancyGuard {
         recipeCount--;
     }
 
-    function adjustRecipe(uint256 _recipeId, Recipe memory _recipe)
-        external
-        onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress)
-    {
+    function adjustRecipe(
+        uint256 _recipeId,
+        Recipe memory _recipe
+    ) external onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress) {
         require(recipeCount > _recipeId, "Recipe does not exist");
-        require(isMinter(_recipe.mintItem.contractAddress), "Minter does not exist");
+        require(
+            isMinter(_recipe.mintItem.contractAddress),
+            "Minter does not exist"
+        );
         _recipeAdjustment(_recipeId, _recipe);
     }
 
     function isMinter(address _contractAddress) public view returns (bool) {
-        return IAccessControl(_contractAddress).hasRole(MINTER_ROLE, address(this));
+        return
+            IAccessControl(_contractAddress).hasRole(
+                MINTER_ROLE,
+                address(this)
+            );
     }
 
     function fabricate(uint256 _recipeId) external payable nonReentrant {
         Recipe memory recipe = recipes[_recipeId];
-        require(recipe.mintItem.contractAddress != address(0), "Recipe does not exist");
-        require(isMinter(recipe.mintItem.contractAddress), "Minter does not exist");
+        require(
+            isMinter(recipe.mintItem.contractAddress),
+            "Minter does not exist"
+        );
 
+        //burn/transfer items1155
         for (uint256 i = 0; i < recipe.items1155.length; i++) {
-            uint256 balanceOf =
-                IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(msg.sender, recipe.items1155[i].id);
-            require(balanceOf >= recipe.items1155[i].amount, "Insufficient balance");
+            uint256 balanceOf = IInventoryV1155(
+                recipe.items1155[i].contractAddress
+            ).balanceOf(msg.sender, recipe.items1155[i].id);
+            require(
+                balanceOf >= recipe.items1155[i].amount,
+                "Insufficient balance"
+            );
             recipe.items1155[i].burn
                 ? IInventoryV1155(recipe.items1155[i].contractAddress).burn(
-                    msg.sender, recipe.items1155[i].id, recipe.items1155[i].amount
+                    msg.sender,
+                    recipe.items1155[i].id,
+                    recipe.items1155[i].amount
                 )
-                : IInventoryV1155(recipe.items1155[i].contractAddress).safeTransferFrom(
-                    msg.sender, recipe.creator, recipe.items1155[i].id, recipe.items1155[i].amount, ""
-                );
+                : IInventoryV1155(recipe.items1155[i].contractAddress)
+                    .safeTransferFrom(
+                        msg.sender,
+                        recipe.creator,
+                        recipe.items1155[i].id,
+                        recipe.items1155[i].amount,
+                        ""
+                    );
             require(
-                balanceOf - recipe.items1155[i].amount
-                    == IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(
-                        recipe.creator, recipe.items1155[i].id
-                    ),
+                balanceOf - recipe.items1155[i].amount ==
+                    IInventoryV1155(recipe.items1155[i].contractAddress)
+                        .balanceOf(recipe.creator, recipe.items1155[i].id),
                 "Did not burn/transfer all items"
             );
         }
 
         for (uint256 i = 0; i < recipe.items20.length; i++) {
-            //track funds moved
-            recipe.items20[i].native
-                ? address(this).balance >= recipe.items20[i].amount
-                    ? payable(recipe.creator).transfer(recipe.items20[i].amount)
-                    : address(this).balance < recipe.items20[i].amount
-                        ? payable(recipe.creator).transfer(address(this).balance)
-                        : payable(recipe.creator).transfer(recipe.items20[i].amount)
-                : IERC20(recipe.items20[i].contractAddress).safeTransferFrom(
-                    msg.sender, recipe.creator, recipe.items20[i].amount
+            if (recipe.items20[i].native) {
+                require(
+                    msg.value == recipe.items20[i].amount,
+                    "Insufficient ETH sent"
                 );
+                payable(recipe.creator).transfer(recipe.items20[i].amount);
+            } else {
+                IERC20(recipe.items20[i].contractAddress).safeTransferFrom(
+                    msg.sender,
+                    recipe.creator,
+                    recipe.items20[i].amount
+                );
+            }
         }
-
-        IInventoryV1155(recipe.mintItem.contractAddress).mint(msg.sender, recipe.mintItem.id, recipe.mintItem.amount);
+        require(
+            isMinter(recipe.mintItem.contractAddress),
+            "Minter does not exist"
+        );
+        //mint item
+        IInventoryV1155(recipe.mintItem.contractAddress).mint(
+            msg.sender,
+            recipe.mintItem.id,
+            recipe.mintItem.amount
+        );
     }
 }
 
