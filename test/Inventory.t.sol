@@ -209,7 +209,7 @@ contract InventoryV1155Test is Test {
         inventory.burnBatch(user, ids, amounts);
     }
 
-    function testUriForNonExistentToken() public {
+    function testUriForNonExistentToken() public view {
         assertEq(inventory.uri(999), "https://example.com/");
     }
 

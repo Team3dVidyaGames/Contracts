@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
-interface IInventoryV1155 {
+import "../../../lib/openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "../../../lib/openzeppelin/contracts/access/IAccessControl.sol";
+
+interface IInventoryV1155 is IERC1155, IAccessControl {
     struct Item {
         uint256[] attributeData;
         uint256[] attributeId;
