@@ -139,10 +139,16 @@ contract Fabricator is ReentrancyGuard {
 }
 
 //Todo:
-//Generate InventoryInterface
-//Create Recipe struct(s)
-//Recipe(s) should handle native/erc20/Inventory
+//Write tests
+//Check for reentrancy
+//Check for overflows
+//Check for underflows
+//Check for zero address
+//Check for zero amount
+//Check for zero id
+//Add events for minting, burning, transferring, and fabricating
+//Add events for adding, removing, and adjusting recipes
 //Recipe(s) should only be able to be made by ADMINs of the erc1155
 //Recipe(s) should only be able to be made if fabicator is minter
-//Recipe(s) should designate where to send native/erc20
-//Recipe(s) does not need an owner or access control directly
+//Recipe(s) should handle native/erc20/Inventory
+//Recipe(s) should handle burn/transfer
