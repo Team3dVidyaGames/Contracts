@@ -9,6 +9,17 @@ import "./interfaces/IInventoryV1155.sol";
 contract Fabricator is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    // Custom Errors
+    error NotAuthorized();
+    error NotMinter();
+    error RecipeDoesNotExist();
+    error TooManyItems();
+    error CreatorNotSet();
+    error InsufficientBalance();
+    error InsufficientEth();
+    error TransferFailed();
+    error InvalidRecipe();
+
     // Events
     event RecipeAdded(uint256 indexed recipeId, address indexed creator, MintItem mintItem);
     event RecipeRemoved(uint256 indexed recipeId);
@@ -56,12 +67,14 @@ contract Fabricator is ReentrancyGuard {
     constructor() {}
 
     modifier onlyRole(bytes32 role, address contractAddress) {
-        require(IAccessControl(contractAddress).hasRole(role, msg.sender), "Caller is not a role");
+        if (!IAccessControl(contractAddress).hasRole(role, msg.sender)) {
+            revert NotAuthorized();
+        }
         _;
     }
 
     function addRecipe(Recipe memory _recipe) external onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress) {
-        require(isMinter(_recipe.mintItem.contractAddress), "Is not Minter");
+        if (!isMinter(_recipe.mintItem.contractAddress)) revert NotMinter();
         _recipeAdjustment(recipeCount, _recipe);
         emit RecipeAdded(recipeCount, _recipe.creator, _recipe.mintItem);
         unchecked {
@@ -71,8 +84,10 @@ contract Fabricator is ReentrancyGuard {
 
     function _recipeAdjustment(uint256 _recipeId, Recipe memory _recipe) internal {
         Recipe storage r = recipes[_recipeId];
-        require(_recipe.items1155.length < 21, "Too many items1155");
-        require(_recipe.items20.length < 21, "Too many items20");
+        if (_recipe.items1155.length >= 21) revert TooManyItems();
+        if (_recipe.items20.length >= 21) revert TooManyItems();
+        if (_recipe.creator == address(0)) revert CreatorNotSet();
+
         if (_recipe.items1155.length > 0) {
             for (uint256 i = 0; i < _recipe.items1155.length;) {
                 r.items1155.push(_recipe.items1155[i]);
@@ -89,7 +104,6 @@ contract Fabricator is ReentrancyGuard {
                 }
             }
         }
-        require(_recipe.creator != address(0), "Creator not set");
         r.creator = _recipe.creator;
         r.mintItem = _recipe.mintItem;
     }
@@ -98,7 +112,7 @@ contract Fabricator is ReentrancyGuard {
         external
         onlyRole(ADMIN_ROLE, recipes[_recipeId].mintItem.contractAddress)
     {
-        require(recipeCount > _recipeId, "Recipe does not exist");
+        if (recipeCount <= _recipeId) revert RecipeDoesNotExist();
         recipes[_recipeId] = recipes[recipeCount - 1];
         emit RecipeRemoved(_recipeId);
         unchecked {
@@ -110,8 +124,8 @@ contract Fabricator is ReentrancyGuard {
         external
         onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress)
     {
-        require(recipeCount > _recipeId, "Recipe does not exist");
-        require(isMinter(_recipe.mintItem.contractAddress), "Minter does not exist");
+        if (recipeCount <= _recipeId) revert RecipeDoesNotExist();
+        if (!isMinter(_recipe.mintItem.contractAddress)) revert NotMinter();
         _recipeAdjustment(_recipeId, _recipe);
         emit RecipeAdjusted(_recipeId, _recipe.creator, _recipe.mintItem);
     }
@@ -122,13 +136,16 @@ contract Fabricator is ReentrancyGuard {
 
     function fabricate(uint256 _recipeId) external payable nonReentrant {
         Recipe memory recipe = recipes[_recipeId];
-        require(isMinter(recipe.mintItem.contractAddress), "Minter does not exist");
+        if (!isMinter(recipe.mintItem.contractAddress)) revert NotMinter();
 
         //burn/transfer items1155
         for (uint256 i = 0; i < recipe.items1155.length;) {
             uint256 balanceOf =
                 IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(msg.sender, recipe.items1155[i].id);
-            require(balanceOf >= recipe.items1155[i].amount, "Insufficient balance");
+            if (balanceOf < recipe.items1155[i].amount) {
+                revert InsufficientBalance();
+            }
+
             if (recipe.items1155[i].burn) {
                 IInventoryV1155(recipe.items1155[i].contractAddress).burn(
                     msg.sender, recipe.items1155[i].id, recipe.items1155[i].amount
@@ -148,13 +165,14 @@ contract Fabricator is ReentrancyGuard {
                     recipe.items1155[i].amount
                 );
             }
-            require(
+            if (
                 balanceOf - recipe.items1155[i].amount
-                    == IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(
+                    != IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(
                         recipe.creator, recipe.items1155[i].id
-                    ),
-                "Did not burn/transfer all items"
-            );
+                    )
+            ) {
+                revert TransferFailed();
+            }
             unchecked {
                 i++;
             }
@@ -162,7 +180,9 @@ contract Fabricator is ReentrancyGuard {
 
         for (uint256 i = 0; i < recipe.items20.length;) {
             if (recipe.items20[i].native) {
-                require(msg.value == recipe.items20[i].amount, "Insufficient ETH sent");
+                if (msg.value != recipe.items20[i].amount) {
+                    revert InsufficientEth();
+                }
                 payable(recipe.creator).transfer(recipe.items20[i].amount);
                 emit NativeTokenTransferred(msg.sender, recipe.creator, recipe.items20[i].amount);
             } else {
@@ -173,8 +193,11 @@ contract Fabricator is ReentrancyGuard {
                     msg.sender, recipe.creator, recipe.items20[i].contractAddress, recipe.items20[i].amount
                 );
             }
+            unchecked {
+                i++;
+            }
         }
-        require(isMinter(recipe.mintItem.contractAddress), "Minter does not exist");
+        if (!isMinter(recipe.mintItem.contractAddress)) revert NotMinter();
         //mint item
         IInventoryV1155(recipe.mintItem.contractAddress).mint(msg.sender, recipe.mintItem.id, recipe.mintItem.amount);
         emit ItemFabricated(_recipeId, msg.sender, recipe.mintItem);
