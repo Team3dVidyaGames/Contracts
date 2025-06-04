@@ -31,9 +31,7 @@ contract Fabricator is ReentrancyGuard {
         MintItem mintItem;
         address creator;
         Item1155[] items1155;
-        uint256 item1155Index;
         Item20[] items20;
-        uint256 item20Index;
     }
 
     struct MintItem {
@@ -66,7 +64,9 @@ contract Fabricator is ReentrancyGuard {
         require(isMinter(_recipe.mintItem.contractAddress), "Is not Minter");
         _recipeAdjustment(recipeCount, _recipe);
         emit RecipeAdded(recipeCount, _recipe.creator, _recipe.mintItem);
-        recipeCount++;
+        unchecked {
+            recipeCount++;
+        }
     }
 
     function _recipeAdjustment(uint256 _recipeId, Recipe memory _recipe) internal {
@@ -74,16 +74,20 @@ contract Fabricator is ReentrancyGuard {
         require(_recipe.items1155.length < 21, "Too many items1155");
         require(_recipe.items20.length < 21, "Too many items20");
         if (_recipe.items1155.length > 0) {
-            for (uint256 i = 0; i < _recipe.items1155.length; i++) {
+            for (uint256 i = 0; i < _recipe.items1155.length;) {
                 r.items1155.push(_recipe.items1155[i]);
+                unchecked {
+                    i++;
+                }
             }
-            r.item1155Index = r.items1155.length - 1;
         }
         if (_recipe.items20.length > 0) {
-            for (uint256 i = 0; i < _recipe.items20.length; i++) {
+            for (uint256 i = 0; i < _recipe.items20.length;) {
                 r.items20.push(_recipe.items20[i]);
+                unchecked {
+                    i++;
+                }
             }
-            r.item20Index = r.items20.length - 1;
         }
         require(_recipe.creator != address(0), "Creator not set");
         r.creator = _recipe.creator;
@@ -97,7 +101,9 @@ contract Fabricator is ReentrancyGuard {
         require(recipeCount > _recipeId, "Recipe does not exist");
         recipes[_recipeId] = recipes[recipeCount - 1];
         emit RecipeRemoved(_recipeId);
-        recipeCount--;
+        unchecked {
+            recipeCount--;
+        }
     }
 
     function adjustRecipe(uint256 _recipeId, Recipe memory _recipe)
@@ -119,7 +125,7 @@ contract Fabricator is ReentrancyGuard {
         require(isMinter(recipe.mintItem.contractAddress), "Minter does not exist");
 
         //burn/transfer items1155
-        for (uint256 i = 0; i < recipe.items1155.length; i++) {
+        for (uint256 i = 0; i < recipe.items1155.length;) {
             uint256 balanceOf =
                 IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(msg.sender, recipe.items1155[i].id);
             require(balanceOf >= recipe.items1155[i].amount, "Insufficient balance");
@@ -149,9 +155,12 @@ contract Fabricator is ReentrancyGuard {
                     ),
                 "Did not burn/transfer all items"
             );
+            unchecked {
+                i++;
+            }
         }
 
-        for (uint256 i = 0; i < recipe.items20.length; i++) {
+        for (uint256 i = 0; i < recipe.items20.length;) {
             if (recipe.items20[i].native) {
                 require(msg.value == recipe.items20[i].amount, "Insufficient ETH sent");
                 payable(recipe.creator).transfer(recipe.items20[i].amount);
