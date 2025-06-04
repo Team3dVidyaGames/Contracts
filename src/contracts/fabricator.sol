@@ -9,6 +9,18 @@ import "./interfaces/IInventoryV1155.sol";
 contract Fabricator is ReentrancyGuard {
     using SafeERC20 for IERC20;
 
+    // Events
+    event RecipeAdded(uint256 indexed recipeId, address indexed creator, MintItem mintItem);
+    event RecipeRemoved(uint256 indexed recipeId);
+    event RecipeAdjusted(uint256 indexed recipeId, address indexed creator, MintItem mintItem);
+    event ItemFabricated(uint256 indexed recipeId, address indexed user, MintItem mintItem);
+    event ItemBurned(address indexed user, address indexed contractAddress, uint256 id, uint256 amount);
+    event ItemTransferred(
+        address indexed from, address indexed to, address indexed contractAddress, uint256 id, uint256 amount
+    );
+    event NativeTokenTransferred(address indexed from, address indexed to, uint256 amount);
+    event ERC20Transferred(address indexed from, address indexed to, address indexed token, uint256 amount);
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -53,6 +65,7 @@ contract Fabricator is ReentrancyGuard {
     function addRecipe(Recipe memory _recipe) external onlyRole(ADMIN_ROLE, _recipe.mintItem.contractAddress) {
         require(isMinter(_recipe.mintItem.contractAddress), "Is not Minter");
         _recipeAdjustment(recipeCount, _recipe);
+        emit RecipeAdded(recipeCount, _recipe.creator, _recipe.mintItem);
         recipeCount++;
     }
 
@@ -83,6 +96,7 @@ contract Fabricator is ReentrancyGuard {
     {
         require(recipeCount > _recipeId, "Recipe does not exist");
         recipes[_recipeId] = recipes[recipeCount - 1];
+        emit RecipeRemoved(_recipeId);
         recipeCount--;
     }
 
@@ -93,6 +107,7 @@ contract Fabricator is ReentrancyGuard {
         require(recipeCount > _recipeId, "Recipe does not exist");
         require(isMinter(_recipe.mintItem.contractAddress), "Minter does not exist");
         _recipeAdjustment(_recipeId, _recipe);
+        emit RecipeAdjusted(_recipeId, _recipe.creator, _recipe.mintItem);
     }
 
     function isMinter(address _contractAddress) public view returns (bool) {
@@ -108,13 +123,25 @@ contract Fabricator is ReentrancyGuard {
             uint256 balanceOf =
                 IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(msg.sender, recipe.items1155[i].id);
             require(balanceOf >= recipe.items1155[i].amount, "Insufficient balance");
-            recipe.items1155[i].burn
-                ? IInventoryV1155(recipe.items1155[i].contractAddress).burn(
+            if (recipe.items1155[i].burn) {
+                IInventoryV1155(recipe.items1155[i].contractAddress).burn(
                     msg.sender, recipe.items1155[i].id, recipe.items1155[i].amount
-                )
-                : IInventoryV1155(recipe.items1155[i].contractAddress).safeTransferFrom(
+                );
+                emit ItemBurned(
+                    msg.sender, recipe.items1155[i].contractAddress, recipe.items1155[i].id, recipe.items1155[i].amount
+                );
+            } else {
+                IInventoryV1155(recipe.items1155[i].contractAddress).safeTransferFrom(
                     msg.sender, recipe.creator, recipe.items1155[i].id, recipe.items1155[i].amount, ""
                 );
+                emit ItemTransferred(
+                    msg.sender,
+                    recipe.creator,
+                    recipe.items1155[i].contractAddress,
+                    recipe.items1155[i].id,
+                    recipe.items1155[i].amount
+                );
+            }
             require(
                 balanceOf - recipe.items1155[i].amount
                     == IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(
@@ -128,15 +155,20 @@ contract Fabricator is ReentrancyGuard {
             if (recipe.items20[i].native) {
                 require(msg.value == recipe.items20[i].amount, "Insufficient ETH sent");
                 payable(recipe.creator).transfer(recipe.items20[i].amount);
+                emit NativeTokenTransferred(msg.sender, recipe.creator, recipe.items20[i].amount);
             } else {
                 IERC20(recipe.items20[i].contractAddress).safeTransferFrom(
                     msg.sender, recipe.creator, recipe.items20[i].amount
+                );
+                emit ERC20Transferred(
+                    msg.sender, recipe.creator, recipe.items20[i].contractAddress, recipe.items20[i].amount
                 );
             }
         }
         require(isMinter(recipe.mintItem.contractAddress), "Minter does not exist");
         //mint item
         IInventoryV1155(recipe.mintItem.contractAddress).mint(msg.sender, recipe.mintItem.id, recipe.mintItem.amount);
+        emit ItemFabricated(_recipeId, msg.sender, recipe.mintItem);
     }
 }
 
