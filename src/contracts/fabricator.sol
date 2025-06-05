@@ -19,6 +19,10 @@ contract Fabricator is ReentrancyGuard {
     error InsufficientEth(uint256 required, uint256 sent);
     error TransferFailed(address token, uint256 amount);
     error InvalidRecipe(uint256 recipeId);
+    error BatchFabricationFailed(uint256 recipeId, string reason);
+    error InvalidBatchLength();
+    error DuplicateRecipeInBatch();
+    error RecipeIdOutOfBounds(uint256 recipeId, uint256 maxRecipeId);
 
     // Events
     event RecipeAdded(uint256 indexed recipeId, address indexed creator, MintItem mintItem);
@@ -31,6 +35,7 @@ contract Fabricator is ReentrancyGuard {
     );
     event NativeTokenTransferred(address indexed from, address indexed to, uint256 amount);
     event ERC20Transferred(address indexed from, address indexed to, address indexed token, uint256 amount);
+    event BatchFabricationCompleted(uint256[] recipeIds, address indexed user);
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
@@ -148,39 +153,45 @@ contract Fabricator is ReentrancyGuard {
         return IAccessControl(_contractAddress).hasRole(MINTER_ROLE, address(this));
     }
 
-    function fabricate(uint256 _recipeId) external payable nonReentrant {
-        Recipe memory recipe = recipes[_recipeId];
+    function _fabricateRecipe(uint256 _recipeId, address _user, uint256 _ethAmount)
+        internal
+        returns (uint256 ethUsed)
+    {
+        Recipe storage recipe = recipes[_recipeId];
         if (!isMinter(recipe.mintItem.contractAddress)) {
             revert NotMinter(recipe.mintItem.contractAddress);
         }
 
-        //burn/transfer items1155
+        uint256 totalEthRequired;
+
+        // Process ERC1155 items
         for (uint256 i = 0; i < recipe.items1155.length;) {
             uint256 balanceOf =
-                IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(msg.sender, recipe.items1155[i].id);
+                IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(_user, recipe.items1155[i].id);
             if (balanceOf < recipe.items1155[i].amount) {
                 revert InsufficientBalance(recipe.items1155[i].contractAddress, recipe.items1155[i].amount, balanceOf);
             }
 
             if (recipe.items1155[i].burn) {
                 IInventoryV1155(recipe.items1155[i].contractAddress).burn(
-                    msg.sender, recipe.items1155[i].id, recipe.items1155[i].amount
+                    _user, recipe.items1155[i].id, recipe.items1155[i].amount
                 );
                 emit ItemBurned(
-                    msg.sender, recipe.items1155[i].contractAddress, recipe.items1155[i].id, recipe.items1155[i].amount
+                    _user, recipe.items1155[i].contractAddress, recipe.items1155[i].id, recipe.items1155[i].amount
                 );
             } else {
                 IInventoryV1155(recipe.items1155[i].contractAddress).safeTransferFrom(
-                    msg.sender, recipe.creator, recipe.items1155[i].id, recipe.items1155[i].amount, ""
+                    _user, recipe.creator, recipe.items1155[i].id, recipe.items1155[i].amount, ""
                 );
                 emit ItemTransferred(
-                    msg.sender,
+                    _user,
                     recipe.creator,
                     recipe.items1155[i].contractAddress,
                     recipe.items1155[i].id,
                     recipe.items1155[i].amount
                 );
             }
+
             if (
                 balanceOf - recipe.items1155[i].amount
                     != IInventoryV1155(recipe.items1155[i].contractAddress).balanceOf(
@@ -194,31 +205,102 @@ contract Fabricator is ReentrancyGuard {
             }
         }
 
+        // Process ERC20 and native token items
         for (uint256 i = 0; i < recipe.items20.length;) {
             if (recipe.items20[i].native) {
-                if (msg.value != recipe.items20[i].amount) {
-                    revert InsufficientEth(recipe.items20[i].amount, msg.value);
-                }
-                payable(recipe.creator).transfer(recipe.items20[i].amount);
-                emit NativeTokenTransferred(msg.sender, recipe.creator, recipe.items20[i].amount);
+                totalEthRequired += recipe.items20[i].amount;
             } else {
+                uint256 balance = IERC20(recipe.items20[i].contractAddress).balanceOf(_user);
+                if (balance < recipe.items20[i].amount) {
+                    revert InsufficientBalance(recipe.items20[i].contractAddress, recipe.items20[i].amount, balance);
+                }
                 IERC20(recipe.items20[i].contractAddress).safeTransferFrom(
-                    msg.sender, recipe.creator, recipe.items20[i].amount
+                    _user, recipe.creator, recipe.items20[i].amount
                 );
                 emit ERC20Transferred(
-                    msg.sender, recipe.creator, recipe.items20[i].contractAddress, recipe.items20[i].amount
+                    _user, recipe.creator, recipe.items20[i].contractAddress, recipe.items20[i].amount
                 );
             }
             unchecked {
                 i++;
             }
         }
-        if (!isMinter(recipe.mintItem.contractAddress)) {
-            revert NotMinter(recipe.mintItem.contractAddress);
+
+        // Validate ETH amount
+        if (totalEthRequired > 0) {
+            if (_ethAmount < totalEthRequired) {
+                revert InsufficientEth(totalEthRequired, _ethAmount);
+            }
+            payable(recipe.creator).transfer(totalEthRequired);
+            emit NativeTokenTransferred(_user, recipe.creator, totalEthRequired);
+            ethUsed = totalEthRequired;
         }
-        //mint item
-        IInventoryV1155(recipe.mintItem.contractAddress).mint(msg.sender, recipe.mintItem.id, recipe.mintItem.amount);
-        emit ItemFabricated(_recipeId, msg.sender, recipe.mintItem);
+
+        // Mint the output item
+        IInventoryV1155(recipe.mintItem.contractAddress).mint(_user, recipe.mintItem.id, recipe.mintItem.amount);
+        emit ItemFabricated(_recipeId, _user, recipe.mintItem);
+    }
+
+    function fabricate(uint256 _recipeId) external payable nonReentrant {
+        if (_recipeId >= recipeCount) revert RecipeDoesNotExist(_recipeId);
+        uint256 ethUsed = _fabricateRecipe(_recipeId, msg.sender, msg.value);
+
+        // Refund excess ETH
+        if (msg.value > ethUsed) {
+            payable(msg.sender).transfer(msg.value - ethUsed);
+        }
+    }
+
+    function hasDuplicateRecipeIds(uint256[] calldata _recipeIds) public view returns (bool) {
+        if (_recipeIds.length == 0) return false;
+
+        uint256 bitmap;
+        for (uint256 i = 0; i < _recipeIds.length;) {
+            uint256 recipeId = _recipeIds[i];
+
+            // Check bounds and duplicates in one pass
+            if (recipeId >= recipeCount) {
+                revert RecipeIdOutOfBounds(recipeId, recipeCount - 1);
+            }
+
+            uint256 mask = 1 << recipeId;
+            if ((bitmap & mask) != 0) {
+                return true;
+            }
+            bitmap |= mask;
+
+            unchecked {
+                i++;
+            }
+        }
+        return false;
+    }
+
+    function batchFabricate(uint256[] calldata _recipeIds) external payable nonReentrant {
+        if (_recipeIds.length == 0) revert InvalidBatchLength();
+        if (hasDuplicateRecipeIds(_recipeIds)) revert DuplicateRecipeInBatch();
+
+        uint256 totalEthUsed;
+
+        // Execute fabrications
+        for (uint256 i = 0; i < _recipeIds.length;) {
+            totalEthUsed += _fabricateRecipe(_recipeIds[i], msg.sender, msg.value - totalEthUsed);
+            unchecked {
+                i++;
+            }
+        }
+
+        // Validate total ETH used
+        if (msg.value < totalEthUsed) {
+            revert InsufficientEth(totalEthUsed, msg.value);
+        }
+
+        // Refund excess ETH
+        if (msg.value > totalEthUsed) {
+            payable(msg.sender).transfer(msg.value - totalEthUsed);
+        }
+
+        emit BatchFabricationCompleted(_recipeIds, msg.sender);
     }
 
     // View Functions
@@ -253,7 +335,7 @@ contract Fabricator is ReentrancyGuard {
         return (totalEthRequired, recipe.items1155, recipe.items20);
     }
 
-    function canFabricate(uint256 _recipeId, address _user)
+    function willFabricate(uint256 _recipeId, address _user)
         external
         view
         returns (bool canFabricate, string memory reason)
@@ -309,6 +391,194 @@ contract Fabricator is ReentrancyGuard {
     function getRecipeMintItem(uint256 _recipeId) external view returns (MintItem memory) {
         if (_recipeId >= recipeCount) revert RecipeDoesNotExist(_recipeId);
         return recipes[_recipeId].mintItem;
+    }
+
+    // Batch View Functions
+    function getBatchRecipeDetails(uint256[] calldata _recipeIds)
+        external
+        view
+        returns (
+            MintItem[] memory mintItems,
+            address[] memory creators,
+            Item1155[][] memory items1155,
+            Item20[][] memory items20
+        )
+    {
+        uint256 length = _recipeIds.length;
+        mintItems = new MintItem[](length);
+        creators = new address[](length);
+        items1155 = new Item1155[][](length);
+        items20 = new Item20[][](length);
+
+        for (uint256 i = 0; i < length;) {
+            uint256 recipeId = _recipeIds[i];
+            if (recipeId >= recipeCount) revert RecipeDoesNotExist(recipeId);
+
+            Recipe storage recipe = recipes[recipeId];
+            mintItems[i] = recipe.mintItem;
+            creators[i] = recipe.creator;
+            items1155[i] = recipe.items1155;
+            items20[i] = recipe.items20;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        return (mintItems, creators, items1155, items20);
+    }
+
+    function getBatchRecipeRequirements(uint256[] calldata _recipeIds)
+        external
+        view
+        returns (uint256[] memory totalEthRequired, Item1155[][] memory items1155, Item20[][] memory items20)
+    {
+        uint256 length = _recipeIds.length;
+        totalEthRequired = new uint256[](length);
+        items1155 = new Item1155[][](length);
+        items20 = new Item20[][](length);
+
+        for (uint256 i = 0; i < length;) {
+            uint256 recipeId = _recipeIds[i];
+            if (recipeId >= recipeCount) revert RecipeDoesNotExist(recipeId);
+
+            Recipe storage recipe = recipes[recipeId];
+
+            // Calculate total ETH required
+            for (uint256 j = 0; j < recipe.items20.length;) {
+                if (recipe.items20[j].native) {
+                    totalEthRequired[i] += recipe.items20[j].amount;
+                }
+                unchecked {
+                    j++;
+                }
+            }
+
+            items1155[i] = recipe.items1155;
+            items20[i] = recipe.items20;
+
+            unchecked {
+                i++;
+            }
+        }
+
+        return (totalEthRequired, items1155, items20);
+    }
+
+    function canFabricateBatch(uint256[] calldata _recipeIds, address _user)
+        external
+        view
+        returns (bool[] memory canFabricate, string[] memory reasons)
+    {
+        uint256 length = _recipeIds.length;
+        canFabricate = new bool[](length);
+        reasons = new string[](length);
+
+        for (uint256 i = 0; i < length;) {
+            uint256 recipeId = _recipeIds[i];
+            if (recipeId >= recipeCount) {
+                canFabricate[i] = false;
+                reasons[i] = "Recipe does not exist";
+                unchecked {
+                    i++;
+                }
+                continue;
+            }
+
+            Recipe storage recipe = recipes[recipeId];
+
+            // Check if contract is minter
+            if (!isMinter(recipe.mintItem.contractAddress)) {
+                canFabricate[i] = false;
+                reasons[i] = "Contract is not minter";
+                unchecked {
+                    i++;
+                }
+                continue;
+            }
+
+            // Check ERC1155 balances
+            bool hasEnoughBalance = true;
+            for (uint256 j = 0; j < recipe.items1155.length;) {
+                uint256 balance =
+                    IInventoryV1155(recipe.items1155[j].contractAddress).balanceOf(_user, recipe.items1155[j].id);
+                if (balance < recipe.items1155[j].amount) {
+                    canFabricate[i] = false;
+                    reasons[i] = "Insufficient ERC1155 balance";
+                    hasEnoughBalance = false;
+                    break;
+                }
+                unchecked {
+                    j++;
+                }
+            }
+
+            if (!hasEnoughBalance) {
+                unchecked {
+                    i++;
+                }
+                continue;
+            }
+
+            // Check ERC20 balances
+            for (uint256 j = 0; j < recipe.items20.length;) {
+                if (!recipe.items20[j].native) {
+                    uint256 balance = IERC20(recipe.items20[j].contractAddress).balanceOf(_user);
+                    if (balance < recipe.items20[j].amount) {
+                        canFabricate[i] = false;
+                        reasons[i] = "Insufficient ERC20 balance";
+                        hasEnoughBalance = false;
+                        break;
+                    }
+                }
+                unchecked {
+                    j++;
+                }
+            }
+
+            if (hasEnoughBalance) {
+                canFabricate[i] = true;
+                reasons[i] = "Can fabricate";
+            }
+
+            unchecked {
+                i++;
+            }
+        }
+
+        return (canFabricate, reasons);
+    }
+
+    function getBatchRecipeCreators(uint256[] calldata _recipeIds) external view returns (address[] memory) {
+        uint256 length = _recipeIds.length;
+        address[] memory creators = new address[](length);
+
+        for (uint256 i = 0; i < length;) {
+            uint256 recipeId = _recipeIds[i];
+            if (recipeId >= recipeCount) revert RecipeDoesNotExist(recipeId);
+            creators[i] = recipes[recipeId].creator;
+            unchecked {
+                i++;
+            }
+        }
+
+        return creators;
+    }
+
+    function getBatchRecipeMintItems(uint256[] calldata _recipeIds) external view returns (MintItem[] memory) {
+        uint256 length = _recipeIds.length;
+        MintItem[] memory mintItems = new MintItem[](length);
+
+        for (uint256 i = 0; i < length;) {
+            uint256 recipeId = _recipeIds[i];
+            if (recipeId >= recipeCount) revert RecipeDoesNotExist(recipeId);
+            mintItems[i] = recipes[recipeId].mintItem;
+            unchecked {
+                i++;
+            }
+        }
+
+        return mintItems;
     }
 }
 
