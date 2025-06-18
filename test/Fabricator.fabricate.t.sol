@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "../src/contracts/Fabricator.sol";
 import "../src/contracts/InventoryV1155.sol";
 import "./mocks/MockERC20.sol";
+import {IERC20Errors, IERC1155Errors} from "../lib/openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract FabricatorFabricateTest is Test {
     Fabricator public fabricator;
@@ -16,8 +17,8 @@ contract FabricatorFabricateTest is Test {
 
     function setUp() public {
         admin = address(this);
-        user1 = vm.addr(1);
-        user2 = vm.addr(2);
+        user1 = vm.addr(5);
+        user2 = vm.addr(6);
 
         // Deploy contracts
         inventory = new InventoryV1155("https://example.com/");
@@ -28,6 +29,7 @@ contract FabricatorFabricateTest is Test {
         vm.startPrank(admin);
         inventory.grantRole(inventory.ADMIN_ROLE(), admin);
         inventory.grantRole(inventory.MINTER_ROLE(), address(fabricator));
+        inventory.grantRole(inventory.MINTER_ROLE(), admin);
 
         // Setup initial item
         uint256[] memory attrData = new uint256[](1);
@@ -73,6 +75,10 @@ contract FabricatorFabricateTest is Test {
         _mintInitialBalances();
 
         vm.startPrank(user1);
+
+        assertTrue(
+            inventory.hasRole(inventory.MINTER_ROLE(), address(fabricator)), "Fabricator Does not have Minter Role"
+        );
         fabricator.fabricate(0);
         vm.stopPrank();
 
@@ -86,14 +92,23 @@ contract FabricatorFabricateTest is Test {
 
     function testFabricate_FailsIfNotEnoughItems() public {
         vm.startPrank(user2);
+
         vm.expectRevert(abi.encodeWithSelector(Fabricator.InsufficientBalance.selector, address(inventory), 1, 0));
         fabricator.fabricate(0);
         vm.stopPrank();
     }
 
     function testFabricate_FailsIfNotApproved() public {
+        // Give user2 the required item
+        vm.startPrank(admin);
+        inventory.mint(user2, 1, 1);
+        vm.stopPrank();
+
         vm.startPrank(user2);
-        vm.expectRevert("ERC1155: caller is not token owner or approved");
+        // Do NOT approve fabricator
+        vm.expectRevert(
+            abi.encodeWithSelector(IERC1155Errors.ERC1155MissingApprovalForAll.selector, address(fabricator), user2)
+        );
         fabricator.fabricate(0);
         vm.stopPrank();
     }
