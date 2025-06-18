@@ -1,5 +1,5 @@
 # MerchantV1
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/b1229391a3bc3e327ba5466f340d9c8644dd32b9/src/contracts/merchant/MerchantV1.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/e23597546a42471f889e05b41ed1ab0f8452795d/src/contracts/merchant/MerchantV1.sol)
 
 **Inherits:**
 [IMerchantV1](/src/contracts/interfaces/IMerchantV1.sol/interface.IMerchantV1.md), AccessControl, ReentrancyGuard

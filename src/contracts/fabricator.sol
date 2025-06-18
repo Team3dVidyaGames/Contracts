@@ -256,26 +256,13 @@ contract Fabricator is ReentrancyGuard {
         }
     }
 
-    function hasDuplicateRecipeIds(uint256[] calldata _recipeIds) public view returns (bool) {
+    function hasDuplicateRecipeIds(uint256[] calldata _recipeIds) public pure returns (bool) {
         if (_recipeIds.length == 0) return false;
-
-        uint256 bitmap;
-        for (uint256 i = 0; i < _recipeIds.length;) {
-            uint256 recipeId = _recipeIds[i];
-
-            // Check bounds and duplicates in one pass
-            if (recipeId >= recipeCount) {
-                revert RecipeIdOutOfBounds(recipeId, recipeCount - 1);
-            }
-
-            uint256 mask = 1 << recipeId;
-            if ((bitmap & mask) != 0) {
-                return true;
-            }
-            bitmap |= mask;
-
-            unchecked {
-                i++;
+        for (uint256 i = 0; i < _recipeIds.length; i++) {
+            for (uint256 j = i + 1; j < _recipeIds.length; j++) {
+                if (_recipeIds[i] == _recipeIds[j]) {
+                    return true;
+                }
             }
         }
         return false;
