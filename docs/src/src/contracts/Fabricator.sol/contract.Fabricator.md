@@ -1,5 +1,5 @@
 # Fabricator
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/e23597546a42471f889e05b41ed1ab0f8452795d/src/contracts/fabricator.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/eebfea7ff562e58521ca03ecb6bfd405f69e319d/src/contracts/fabricator.sol)
 
 **Inherits:**
 ReentrancyGuard
