@@ -2,10 +2,10 @@
 pragma solidity ^0.8.6;
 
 import "forge-std/Test.sol";
-import "../src/contracts/Fabricator.sol";
-import "../src/contracts/InventoryV1155.sol";
-import "./mocks/MockERC20.sol";
-import {IERC20Errors, IERC1155Errors} from "../lib/openzeppelin/contracts/interfaces/draft-IERC6093.sol";
+import "../../src/contracts/Fabricator.sol";
+import "../../src/contracts/InventoryV1155.sol";
+import "../test/mocks/MockERC20.sol";
+import {IERC20Errors, IERC1155Errors} from "../../lib/openzeppelin/contracts/interfaces/draft-IERC6093.sol";
 
 contract FabricatorFabricateTest is Test {
     Fabricator public fabricator;

@@ -1,5 +1,5 @@
 # Fabricator
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/e866e8203faadddbdd3cf6d9ebd2d8fe3224041d/src/contracts/Fabricator.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/0946c0ce08b7c17a0fd4ba9ab7fc06967663c9a5/src/contracts/Fabricator.sol)
 
 **Inherits:**
 ReentrancyGuard
@@ -104,7 +104,7 @@ function fabricate(uint256 _recipeId) external payable nonReentrant;
 
 
 ```solidity
-function hasDuplicateRecipeIds(uint256[] calldata _recipeIds) public view returns (bool);
+function hasDuplicateRecipeIds(uint256[] calldata _recipeIds) public pure returns (bool);
 ```
 
 ### batchFabricate

@@ -433,7 +433,7 @@ contract FabricatorTest is Test {
         // Verify the adjusted recipe
         (
             Fabricator.MintItem memory mintItemOut,
-            address creator,
+            ,
             Fabricator.Item1155[] memory items1155Out,
             Fabricator.Item20[] memory items20Out
         ) = fabricator.getRecipeDetails(0);
