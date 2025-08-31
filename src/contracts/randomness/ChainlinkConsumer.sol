@@ -85,8 +85,7 @@ contract ChainlinkConsumer is
 
     function setVRF(
         address _vrfCoordinator,
-        uint256 _subscriptionId,
-        uint256 _requestFee
+        uint256 _subscriptionId
     ) external onlyRole(ADMIN_ROLE) {
         require(
             _vrfCoordinator != address(0),
@@ -95,7 +94,14 @@ contract ChainlinkConsumer is
         require(_subscriptionId != 0, "Invalid subscription ID");
         vrfCoordinator = _vrfCoordinator;
         subscriptionId = _subscriptionId;
+    }
+
+    function setFees(
+        uint256 _requestFee,
+        uint256 _viewerFee
+    ) external onlyRole(ADMIN_ROLE) {
         requestFee = _requestFee;
+        viewerFee = viewerFee;
     }
 
     function setKeyHash(bytes32 _keyHash) external onlyRole(ADMIN_ROLE) {
