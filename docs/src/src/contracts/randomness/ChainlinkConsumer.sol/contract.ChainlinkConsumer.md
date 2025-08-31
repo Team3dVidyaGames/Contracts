@@ -1,8 +1,8 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/26c5f16de2d551ed5bfcade59d4625fc493725cf/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/6d7de4d939b0e4824f0ca5146054da62085f61ff/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
-VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl
+VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl, ReentrancyGuard
 
 
 ## State Variables
@@ -189,7 +189,13 @@ function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords)
 
 
 ```solidity
-function requestRandomness(uint32 numWords) external payable override onlyRole(REQUESTER_ROLE) returns (uint256);
+function requestRandomness(uint32 numWords)
+    external
+    payable
+    override
+    onlyRole(REQUESTER_ROLE)
+    nonReentrant
+    returns (uint256);
 ```
 
 ### getRandomness
@@ -210,6 +216,13 @@ function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) return
 
 
 ```solidity
-function getRandomnessPosition(uint256 randomnessPosition) external payable returns (uint256);
+function getRandomnessPosition(uint256 randomnessPosition) external payable nonReentrant returns (uint256);
+```
+
+### _sendSubscriptionFees
+
+
+```solidity
+function _sendSubscriptionFees() internal;
 ```
 

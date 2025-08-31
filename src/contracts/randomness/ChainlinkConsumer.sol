@@ -6,9 +6,12 @@ import {VRFV2PlusClient} from "../../../lib/chainlink/contracts/src/v0.8/vrf/dev
 import {IVRFConsumer} from "../interfaces/IVRFConsumer.sol";
 import {IVRFCoordinatorV2Plus} from
     "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+import {IVRFSubscriptionV2Plus} from
+    "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFSubscriptionV2Plus.sol";
 import {AccessControl} from "../../../lib/openzeppelin/contracts/access/AccessControl.sol";
+import {ReentrancyGuard} from "../../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl {
+contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl, ReentrancyGuard {
     mapping(uint256 => uint256[]) private requestIdToRandomness;
     mapping(uint256 => address) public requestIdToSender;
     mapping(uint256 => bool) public requestIdToFullfilled;
@@ -111,9 +114,17 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         requestIdToFullfilled[requestId] = true;
     }
 
-    function requestRandomness(uint32 numWords) external payable override onlyRole(REQUESTER_ROLE) returns (uint256) {
+    function requestRandomness(uint32 numWords)
+        external
+        payable
+        override
+        onlyRole(REQUESTER_ROLE)
+        nonReentrant
+        returns (uint256)
+    {
         if (hasRole(PAYER_ROLE, msg.sender)) {
             require(msg.value >= requestFee, "Not enough ETH sent");
+            _sendSubscriptionFees();
         }
         return _requestRandomWords(numWords);
     }
@@ -128,10 +139,15 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         return randomnessCounter;
     }
 
-    function getRandomnessPosition(uint256 randomnessPosition) external payable returns (uint256) {
+    function getRandomnessPosition(uint256 randomnessPosition) external payable nonReentrant returns (uint256) {
         if (!hasRole(RANDOMNESS_VIEWER, msg.sender)) {
             require(msg.value >= viewerFee, "Not enough ETH sent");
+            _sendSubscriptionFees();
         }
         return everyRandomnessRequested[randomnessPosition];
+    }
+
+    function _sendSubscriptionFees() internal {
+        IVRFSubscriptionV2Plus(vrfCoordinator).fundSubscriptionWithNative{value: address(this).balance}(subscriptionId);
     }
 }
