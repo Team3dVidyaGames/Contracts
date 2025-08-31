@@ -1,8 +1,8 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/b785bda044a71d2e5bb90a7d47ee33be048c0937/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/fc90ad8d8725236ceebb9463d30d0b5cc0ef20b9/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
-VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md)
+VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl
 
 
 ## State Variables
@@ -24,6 +24,20 @@ mapping(uint256 => address) public requestIdToSender;
 
 ```solidity
 mapping(uint256 => bool) public requestIdToFulfilled;
+```
+
+
+### everyRandomnessRequested
+
+```solidity
+mapping(uint256 => uint256) public everyRandomnessRequested;
+```
+
+
+### randomnessCounter
+
+```solidity
+uint256 public randomnessCounter;
 ```
 
 
@@ -62,6 +76,27 @@ uint32 public callbackGasLimit;
 ```
 
 
+### ADMIN_ROLE
+
+```solidity
+bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+```
+
+
+### REQUESTER_ROLE
+
+```solidity
+bytes32 public constant REQUESTER_ROLE = keccak256("REQUESTER_ROLE");
+```
+
+
+### RANDOMNESS_VIEWER
+
+```solidity
+bytes32 public constant RANDOMNESS_VIEWER = keccak256("RANDOMNESS_VIEWER");
+```
+
+
 ## Functions
 ### constructor
 
@@ -74,48 +109,69 @@ constructor(address _vrfCoordinator, uint256 _subscriptionId) VRFConsumerBaseV2P
 
 
 ```solidity
-function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) external;
+function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setVRF
 
 
 ```solidity
-function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external;
+function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setKeyHash
 
 
 ```solidity
-function setKeyHash(bytes32 _keyHash) external;
+function setKeyHash(bytes32 _keyHash) external onlyRole(ADMIN_ROLE);
 ```
 
-### requestRandomWords
+### _requestRandomWords
 
 
 ```solidity
-function requestRandomWords(uint32 numWords) internal returns (uint256);
+function _requestRandomWords(uint32 numWords) internal returns (uint256 requestId);
 ```
 
 ### fulfillRandomWords
 
 
 ```solidity
-function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override;
+function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords)
+    internal
+    override
+    onlyRole(RANDOMNESS_VIEWER);
 ```
 
 ### requestRandomness
 
 
 ```solidity
-function requestRandomness(uint32 numWords) external payable override returns (uint256);
+function requestRandomness(uint32 numWords) external payable override onlyRole(REQUESTER_ROLE) returns (uint256);
 ```
 
 ### getRandomness
 
 
 ```solidity
-function getRandomness(uint256 requestId) external view returns (uint256[] memory);
+function getRandomness(uint256 requestId) external view onlyRole(REQUESTER_ROLE) returns (uint256[] memory);
+```
+
+### getRandomnessCounter
+
+
+```solidity
+function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) returns (uint256);
+```
+
+### getRandomnessPosition
+
+
+```solidity
+function getRandomnessPosition(uint256 randomnessPosition)
+    external
+    view
+    onlyRole(RANDOMNESS_VIEWER)
+    returns (uint256);
 ```
 
