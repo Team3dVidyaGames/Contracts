@@ -1,5 +1,5 @@
 # IMerchantV1
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/1ea082fa7a0e0f6b1f2f48334e6587a529352f75/src/contracts/interfaces/IMerchantV1.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/3d6d5f12690c365512a861be920dcb9668bbae64/src/contracts/interfaces/IMerchantV1.sol)
 
 *Interface for the MerchantV1 contract*
 

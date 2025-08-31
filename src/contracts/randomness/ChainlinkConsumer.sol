@@ -101,7 +101,7 @@ contract ChainlinkConsumer is
         uint256 _viewerFee
     ) external onlyRole(ADMIN_ROLE) {
         requestFee = _requestFee;
-        viewerFee = viewerFee;
+        viewerFee = _viewerFee;
     }
 
     function setKeyHash(bytes32 _keyHash) external onlyRole(ADMIN_ROLE) {

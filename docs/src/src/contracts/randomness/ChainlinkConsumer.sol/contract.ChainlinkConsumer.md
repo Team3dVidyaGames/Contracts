@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/1ea082fa7a0e0f6b1f2f48334e6587a529352f75/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/3d6d5f12690c365512a861be920dcb9668bbae64/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl
@@ -151,7 +151,14 @@ function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) exter
 
 
 ```solidity
-function setVRF(address _vrfCoordinator, uint256 _subscriptionId, uint256 _requestFee) external onlyRole(ADMIN_ROLE);
+function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyRole(ADMIN_ROLE);
+```
+
+### setFees
+
+
+```solidity
+function setFees(uint256 _requestFee, uint256 _viewerFee) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setKeyHash
