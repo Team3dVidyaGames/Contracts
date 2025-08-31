@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/3d6d5f12690c365512a861be920dcb9668bbae64/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/26c5f16de2d551ed5bfcade59d4625fc493725cf/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl
@@ -210,10 +210,6 @@ function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) return
 
 
 ```solidity
-function getRandomnessPosition(uint256 randomnessPosition)
-    external
-    payable
-    onlyRole(RANDOMNESS_VIEWER)
-    returns (uint256);
+function getRandomnessPosition(uint256 randomnessPosition) external payable returns (uint256);
 ```
 

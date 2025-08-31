@@ -4,14 +4,11 @@ pragma solidity ^0.8.6;
 import {VRFConsumerBaseV2Plus} from "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/VRFConsumerBaseV2Plus.sol";
 import {VRFV2PlusClient} from "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/libraries/VRFV2PlusClient.sol";
 import {IVRFConsumer} from "../interfaces/IVRFConsumer.sol";
-import {IVRFCoordinatorV2Plus} from "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
+import {IVRFCoordinatorV2Plus} from
+    "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFCoordinatorV2Plus.sol";
 import {AccessControl} from "../../../lib/openzeppelin/contracts/access/AccessControl.sol";
 
-contract ChainlinkConsumer is
-    VRFConsumerBaseV2Plus,
-    IVRFConsumer,
-    AccessControl
-{
+contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl {
     mapping(uint256 => uint256[]) private requestIdToRandomness;
     mapping(uint256 => address) public requestIdToSender;
     mapping(uint256 => bool) public requestIdToFullfilled;
@@ -32,10 +29,7 @@ contract ChainlinkConsumer is
     bytes32 public constant RANDOMNESS_VIEWER = keccak256("RANDOMNESS_VIEWER");
     bytes32 public constant PAYER_ROLE = keccak256("PAYER_ROLE");
 
-    constructor(
-        address _vrfCoordinator,
-        uint256 _subscriptionId
-    ) VRFConsumerBaseV2Plus(_vrfCoordinator) {
+    constructor(address _vrfCoordinator, uint256 _subscriptionId) VRFConsumerBaseV2Plus(_vrfCoordinator) {
         vrfCoordinator = _vrfCoordinator;
         subscriptionId = _subscriptionId;
 
@@ -47,11 +41,7 @@ contract ChainlinkConsumer is
         _setRoleAdmin(REQUESTER_ROLE, ADMIN_ROLE);
     }
 
-    function setRequesterRole(
-        address _requester,
-        bool _grant,
-        bool _payer
-    ) external onlyRole(ADMIN_ROLE) {
+    function setRequesterRole(address _requester, bool _grant, bool _payer) external onlyRole(ADMIN_ROLE) {
         if (_grant) {
             _grantRole(REQUESTER_ROLE, _requester);
         } else {
@@ -64,10 +54,7 @@ contract ChainlinkConsumer is
         }
     }
 
-    function setRandomnessViewerRole(
-        address _randomnessViewer,
-        bool _grant
-    ) external onlyRole(ADMIN_ROLE) {
+    function setRandomnessViewerRole(address _randomnessViewer, bool _grant) external onlyRole(ADMIN_ROLE) {
         if (_grant) {
             _grantRole(RANDOMNESS_VIEWER, _randomnessViewer);
         } else {
@@ -75,31 +62,19 @@ contract ChainlinkConsumer is
         }
     }
 
-    function setParams(
-        uint16 _requestConfirmations,
-        uint32 _callbackGasLimit
-    ) external onlyRole(ADMIN_ROLE) {
+    function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) external onlyRole(ADMIN_ROLE) {
         requestConfirmations = _requestConfirmations;
         callbackGasLimit = _callbackGasLimit;
     }
 
-    function setVRF(
-        address _vrfCoordinator,
-        uint256 _subscriptionId
-    ) external onlyRole(ADMIN_ROLE) {
-        require(
-            _vrfCoordinator != address(0),
-            "Invalid VRF coordinator address"
-        );
+    function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyRole(ADMIN_ROLE) {
+        require(_vrfCoordinator != address(0), "Invalid VRF coordinator address");
         require(_subscriptionId != 0, "Invalid subscription ID");
         vrfCoordinator = _vrfCoordinator;
         subscriptionId = _subscriptionId;
     }
 
-    function setFees(
-        uint256 _requestFee,
-        uint256 _viewerFee
-    ) external onlyRole(ADMIN_ROLE) {
+    function setFees(uint256 _requestFee, uint256 _viewerFee) external onlyRole(ADMIN_ROLE) {
         requestFee = _requestFee;
         viewerFee = _viewerFee;
     }
@@ -108,9 +83,7 @@ contract ChainlinkConsumer is
         keyHash = _keyHash;
     }
 
-    function _requestRandomWords(
-        uint32 numWords
-    ) internal returns (uint256 requestId) {
+    function _requestRandomWords(uint32 numWords) internal returns (uint256 requestId) {
         requestId = IVRFCoordinatorV2Plus(vrfCoordinator).requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
                 keyHash: keyHash,
@@ -119,18 +92,17 @@ contract ChainlinkConsumer is
                 callbackGasLimit: callbackGasLimit,
                 numWords: numWords,
                 // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                extraArgs: VRFV2PlusClient._argsToBytes(
-                    VRFV2PlusClient.ExtraArgsV1({nativePayment: false})
-                )
+                extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: false}))
             })
         );
         requestIdToSender[requestId] = msg.sender;
     }
 
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] calldata randomWords
-    ) internal override onlyRole(RANDOMNESS_VIEWER) {
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords)
+        internal
+        override
+        onlyRole(RANDOMNESS_VIEWER)
+    {
         for (uint256 i = 0; i < randomWords.length; i++) {
             requestIdToRandomness[requestId].push(randomWords[i]);
             everyRandomnessRequested[randomWords[i]];
@@ -139,38 +111,24 @@ contract ChainlinkConsumer is
         requestIdToFullfilled[requestId] = true;
     }
 
-    function requestRandomness(
-        uint32 numWords
-    ) external payable override onlyRole(REQUESTER_ROLE) returns (uint256) {
+    function requestRandomness(uint32 numWords) external payable override onlyRole(REQUESTER_ROLE) returns (uint256) {
         if (hasRole(PAYER_ROLE, msg.sender)) {
             require(msg.value >= requestFee, "Not enough ETH sent");
         }
         return _requestRandomWords(numWords);
     }
 
-    function getRandomness(
-        uint256 requestId
-    ) external view onlyRole(REQUESTER_ROLE) returns (uint256[] memory) {
+    function getRandomness(uint256 requestId) external view onlyRole(REQUESTER_ROLE) returns (uint256[] memory) {
         require(requestIdToFullfilled[requestId], "Request not fullfilled");
-        require(
-            requestIdToSender[requestId] == msg.sender,
-            "Not the requester"
-        );
+        require(requestIdToSender[requestId] == msg.sender, "Not the requester");
         return requestIdToRandomness[requestId];
     }
 
-    function getRandomnessCounter()
-        external
-        view
-        onlyRole(RANDOMNESS_VIEWER)
-        returns (uint256)
-    {
+    function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) returns (uint256) {
         return randomnessCounter;
     }
 
-    function getRandomnessPosition(
-        uint256 randomnessPosition
-    ) external payable onlyRole(RANDOMNESS_VIEWER) returns (uint256) {
+    function getRandomnessPosition(uint256 randomnessPosition) external payable returns (uint256) {
         if (!hasRole(RANDOMNESS_VIEWER, msg.sender)) {
             require(msg.value >= viewerFee, "Not enough ETH sent");
         }
