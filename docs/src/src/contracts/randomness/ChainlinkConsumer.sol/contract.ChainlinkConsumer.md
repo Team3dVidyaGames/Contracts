@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/fc90ad8d8725236ceebb9463d30d0b5cc0ef20b9/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/1ea082fa7a0e0f6b1f2f48334e6587a529352f75/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl
@@ -9,7 +9,7 @@ VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol
 ### requestIdToRandomness
 
 ```solidity
-mapping(uint256 => uint256[]) public requestIdToRandomness;
+mapping(uint256 => uint256[]) private requestIdToRandomness;
 ```
 
 
@@ -20,24 +20,24 @@ mapping(uint256 => address) public requestIdToSender;
 ```
 
 
-### requestIdToFulfilled
+### requestIdToFullfilled
 
 ```solidity
-mapping(uint256 => bool) public requestIdToFulfilled;
+mapping(uint256 => bool) public requestIdToFullfilled;
 ```
 
 
 ### everyRandomnessRequested
 
 ```solidity
-mapping(uint256 => uint256) public everyRandomnessRequested;
+mapping(uint256 => uint256) private everyRandomnessRequested;
 ```
 
 
 ### randomnessCounter
 
 ```solidity
-uint256 public randomnessCounter;
+uint256 private randomnessCounter;
 ```
 
 
@@ -76,6 +76,20 @@ uint32 public callbackGasLimit;
 ```
 
 
+### requestFee
+
+```solidity
+uint256 public requestFee;
+```
+
+
+### viewerFee
+
+```solidity
+uint256 public viewerFee;
+```
+
+
 ### ADMIN_ROLE
 
 ```solidity
@@ -97,12 +111,33 @@ bytes32 public constant RANDOMNESS_VIEWER = keccak256("RANDOMNESS_VIEWER");
 ```
 
 
+### PAYER_ROLE
+
+```solidity
+bytes32 public constant PAYER_ROLE = keccak256("PAYER_ROLE");
+```
+
+
 ## Functions
 ### constructor
 
 
 ```solidity
 constructor(address _vrfCoordinator, uint256 _subscriptionId) VRFConsumerBaseV2Plus(_vrfCoordinator);
+```
+
+### setRequesterRole
+
+
+```solidity
+function setRequesterRole(address _requester, bool _grant, bool _payer) external onlyRole(ADMIN_ROLE);
+```
+
+### setRandomnessViewerRole
+
+
+```solidity
+function setRandomnessViewerRole(address _randomnessViewer, bool _grant) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setParams
@@ -116,7 +151,7 @@ function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) exter
 
 
 ```solidity
-function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyRole(ADMIN_ROLE);
+function setVRF(address _vrfCoordinator, uint256 _subscriptionId, uint256 _requestFee) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setKeyHash
@@ -170,7 +205,7 @@ function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) return
 ```solidity
 function getRandomnessPosition(uint256 randomnessPosition)
     external
-    view
+    payable
     onlyRole(RANDOMNESS_VIEWER)
     returns (uint256);
 ```
