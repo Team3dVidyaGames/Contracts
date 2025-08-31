@@ -139,12 +139,22 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         return randomnessCounter;
     }
 
-    function getRandomnessPosition(uint256 randomnessPosition) external payable nonReentrant returns (uint256) {
+    function getRandomnessPosition(uint256[] memory randomnessPosition)
+        external
+        payable
+        nonReentrant
+        returns (uint256[] memory)
+    {
+        uint256 length = randomnessPosition.length;
         if (!hasRole(RANDOMNESS_VIEWER, msg.sender)) {
-            require(msg.value >= viewerFee, "Not enough ETH sent");
+            require(msg.value >= viewerFee * length, "Not enough ETH sent");
             _sendSubscriptionFees();
         }
-        return everyRandomnessRequested[randomnessPosition];
+        uint256[] memory randomNumbers = new uint256[](length);
+        for (uint256 i = 0; i < length; i++) {
+            randomNumbers[i] = everyRandomnessRequested[randomnessPosition[i]];
+        }
+        return randomNumbers;
     }
 
     function _sendSubscriptionFees() internal {
