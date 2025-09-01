@@ -16,8 +16,9 @@ clean-web3:
 	rm -rf node_modules
 
 forge:
-	forge build
 	forge fmt
+	forge build
+	
 
 docs:
 	forge doc

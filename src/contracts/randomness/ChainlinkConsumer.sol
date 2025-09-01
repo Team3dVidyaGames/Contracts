@@ -26,6 +26,7 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     uint32 public callbackGasLimit;
     uint256 public requestFee;
     uint256 public viewerFee;
+    uint256 public openWordRequest;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant REQUESTER_ROLE = keccak256("REQUESTER_ROLE");
@@ -99,6 +100,7 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
             })
         );
         requestIdToSender[requestId] = msg.sender;
+        openWordRequest += uint256(numWords);
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords)
@@ -112,6 +114,11 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
             randomnessCounter++;
         }
         requestIdToFullfilled[requestId] = true;
+        if (openWordRequest >= uint256(randomWords.length)) {
+            openWordRequest -= uint256(randomWords.length);
+        } else {
+            openWordRequest = 0;
+        }
     }
 
     function requestRandomness(uint32 numWords)

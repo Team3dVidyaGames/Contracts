@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/0fcc2b9951d97de02d84c50f9418cd8e0cd891ee/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/8a9ab064a51b9ac58b16f10ebc77025047982a5b/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl, ReentrancyGuard
@@ -87,6 +87,13 @@ uint256 public requestFee;
 
 ```solidity
 uint256 public viewerFee;
+```
+
+
+### openWordRequest
+
+```solidity
+uint256 public openWordRequest;
 ```
 
 
