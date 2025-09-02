@@ -10,6 +10,8 @@ import {IVRFSubscriptionV2Plus} from
     "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFSubscriptionV2Plus.sol";
 import {AccessControl} from "../../../lib/openzeppelin/contracts/access/AccessControl.sol";
 import {ReentrancyGuard} from "../../../lib/openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import {IVRFSubscriptionV2Plus} from
+    "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFSubscriptionV2Plus.sol";
 
 contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl, ReentrancyGuard {
     mapping(uint256 => uint256[]) private requestIdToRandomness;
@@ -26,7 +28,10 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     uint32 public callbackGasLimit;
     uint256 public requestFee;
     uint256 public viewerFee;
+    uint256 public holdingFeesAmount;
     uint256 public openWordRequest;
+
+    address public ethOverfundAddress;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant REQUESTER_ROLE = keccak256("REQUESTER_ROLE");
@@ -36,7 +41,7 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     constructor(address _vrfCoordinator, uint256 _subscriptionId) VRFConsumerBaseV2Plus(_vrfCoordinator) {
         vrfCoordinator = _vrfCoordinator;
         subscriptionId = _subscriptionId;
-
+        ethOverfundAddress = msg.sender;
         _grantRole(ADMIN_ROLE, msg.sender);
         _grantRole(RANDOMNESS_VIEWER, msg.sender);
         _grantRole(PAYER_ROLE, msg.sender);
@@ -71,6 +76,10 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         callbackGasLimit = _callbackGasLimit;
     }
 
+    function setEthOverfundAddress(address _ethOverfundAddress) external onlyRole(ADMIN_ROLE) {
+        ethOverfundAddress = _ethOverfundAddress;
+    }
+
     function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyRole(ADMIN_ROLE) {
         require(_vrfCoordinator != address(0), "Invalid VRF coordinator address");
         require(_subscriptionId != 0, "Invalid subscription ID");
@@ -78,9 +87,13 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         subscriptionId = _subscriptionId;
     }
 
-    function setFees(uint256 _requestFee, uint256 _viewerFee) external onlyRole(ADMIN_ROLE) {
+    function setFees(uint256 _requestFee, uint256 _viewerFee, uint256 _holdingFeesAmount)
+        external
+        onlyRole(ADMIN_ROLE)
+    {
         requestFee = _requestFee;
         viewerFee = _viewerFee;
+        holdingFeesAmount = _holdingFeesAmount;
     }
 
     function setKeyHash(bytes32 _keyHash) external onlyRole(ADMIN_ROLE) {
@@ -165,6 +178,15 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     }
 
     function _sendSubscriptionFees() internal {
-        IVRFSubscriptionV2Plus(vrfCoordinator).fundSubscriptionWithNative{value: address(this).balance}(subscriptionId);
+        (, uint96 nativeBalance,,,) = IVRFSubscriptionV2Plus(vrfCoordinator).getSubscription(subscriptionId);
+
+        if (nativeBalance < holdingFeesAmount) {
+            IVRFSubscriptionV2Plus(vrfCoordinator).fundSubscriptionWithNative{value: address(this).balance}(
+                subscriptionId
+            );
+        } else {
+            //transfer low level call the extra eth to the ethOverfundAddress
+            payable(ethOverfundAddress).call{value: address(this).balance}("");
+        }
     }
 }

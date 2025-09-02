@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/8a9ab064a51b9ac58b16f10ebc77025047982a5b/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/6a7640191320ef73ba5aae1a42fb598c3df138bc/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl, ReentrancyGuard
@@ -90,10 +90,24 @@ uint256 public viewerFee;
 ```
 
 
+### holdingFeesAmount
+
+```solidity
+uint256 public holdingFeesAmount;
+```
+
+
 ### openWordRequest
 
 ```solidity
 uint256 public openWordRequest;
+```
+
+
+### ethOverfundAddress
+
+```solidity
+address public ethOverfundAddress;
 ```
 
 
@@ -154,6 +168,13 @@ function setRandomnessViewerRole(address _randomnessViewer, bool _grant) externa
 function setParams(uint16 _requestConfirmations, uint32 _callbackGasLimit) external onlyRole(ADMIN_ROLE);
 ```
 
+### setEthOverfundAddress
+
+
+```solidity
+function setEthOverfundAddress(address _ethOverfundAddress) external onlyRole(ADMIN_ROLE);
+```
+
 ### setVRF
 
 
@@ -165,7 +186,7 @@ function setVRF(address _vrfCoordinator, uint256 _subscriptionId) external onlyR
 
 
 ```solidity
-function setFees(uint256 _requestFee, uint256 _viewerFee) external onlyRole(ADMIN_ROLE);
+function setFees(uint256 _requestFee, uint256 _viewerFee, uint256 _holdingFeesAmount) external onlyRole(ADMIN_ROLE);
 ```
 
 ### setKeyHash
