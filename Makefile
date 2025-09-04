@@ -1,6 +1,6 @@
 .PHONY: clean generate docs test redocs forge tidy gitmodule
 
-build: tidy forge generate docs
+build: tidy forge generate docs bin/inventory
 
 rebuild: clean build
 
@@ -19,6 +19,14 @@ forge:
 	forge fmt
 	forge build
 	
+bin/inventory:
+	mkdir -p bin	
+	go mod tidy
+	go build -o bin/inventory ./cmd/inventory
+
+bindings/ChainlinkConsumer/ChainlinkConsumer.go: forge
+	mkdir -p bindings/ChainlinkConsumer
+	seer evm generate --package ChainlinkConsumer --output bindings/ChainlinkConsumer.go --hardhat artifacts/src/contracts/randomness/ChainlinkConsumer.sol/ChainlinkConsumer.json --cli --struct ChainlinkConsumer
 
 docs:
 	forge doc
@@ -30,6 +38,8 @@ tidy:
 	go mod tidy
 
 deepclean: clean clean-web3
+
+bindings: bindings/ChainlinkConsumer/ChainlinkConsumer.go
 
 redocs: clean docs
 

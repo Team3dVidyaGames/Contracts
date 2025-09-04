@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/Team3dVidyaGames/Inventory/version"
+	"github.com/Team3dVidyaGames/Inventory/accounts"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +22,10 @@ func CreateRootCommand() *cobra.Command {
 	versionCmd := CreateVersionCommand()
 	rootCmd.AddCommand(completionCmd, versionCmd)
 
-	rootCmd.AddCommand()
+	accountsCmd := accounts.CreateAccountsCommand()
+	accountsCmd.Use = "accounts"
+
+	rootCmd.AddCommand(accountsCmd)
 
 	// By default, cobra Command objects write to stderr. We have to forcibly set them to output to
 	// stdout.

@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/6a7640191320ef73ba5aae1a42fb598c3df138bc/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/89b178e6ffa791443426be90fc6b186536acbc57/src/contracts/randomness/ChainlinkConsumer.sol)
 
 **Inherits:**
 VRFConsumerBaseV2Plus, [IVRFConsumer](/src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md), AccessControl, ReentrancyGuard
@@ -256,5 +256,12 @@ function getRandomnessPosition(uint256[] memory randomnessPosition)
 
 ```solidity
 function _sendSubscriptionFees() internal;
+```
+
+## Events
+### TransferFailed
+
+```solidity
+event TransferFailed(address indexed ethOverfundAddress);
 ```
 

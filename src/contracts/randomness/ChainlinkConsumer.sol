@@ -14,6 +14,8 @@ import {IVRFSubscriptionV2Plus} from
     "../../../lib/chainlink/contracts/src/v0.8/vrf/dev/interfaces/IVRFSubscriptionV2Plus.sol";
 
 contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl, ReentrancyGuard {
+    event TransferFailed(address indexed ethOverfundAddress);
+
     mapping(uint256 => uint256[]) private requestIdToRandomness;
     mapping(uint256 => address) public requestIdToSender;
     mapping(uint256 => bool) public requestIdToFullfilled;
@@ -186,7 +188,10 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
             );
         } else {
             //transfer low level call the extra eth to the ethOverfundAddress
-            payable(ethOverfundAddress).call{value: address(this).balance}("");
+            (bool success,) = payable(ethOverfundAddress).call{value: address(this).balance}("");
+            if (!success) {
+                emit TransferFailed(ethOverfundAddress);
+            }
         }
     }
 }
