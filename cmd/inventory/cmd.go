@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 
-	"github.com/Team3dVidyaGames/Inventory/version"
 	"github.com/Team3dVidyaGames/Inventory/accounts"
+	"github.com/Team3dVidyaGames/Inventory/version"
 	"github.com/spf13/cobra"
 )
 
@@ -24,6 +24,7 @@ func CreateRootCommand() *cobra.Command {
 
 	accountsCmd := accounts.CreateAccountsCommand()
 	accountsCmd.Use = "accounts"
+
 
 	rootCmd.AddCommand(accountsCmd)
 

@@ -1,8 +1,8 @@
 # IInventoryV1155
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/89b178e6ffa791443426be90fc6b186536acbc57/src/contracts/interfaces/IInventoryV1155.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/31e6a3daee14ffbd0b191978eeefd42265f32d78/src/contracts/interfaces/IInventoryV1155.sol)
 
 **Inherits:**
-IERC1155, IAccessControl
+IERC1155, [IAccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IAccessControl.md)
 
 
 ## Functions

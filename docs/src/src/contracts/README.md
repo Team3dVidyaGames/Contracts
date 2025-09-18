@@ -1,6 +1,7 @@
 
 
 # Contents
+- [flattened](/src/contracts/flattened)
 - [interfaces](/src/contracts/interfaces)
 - [merchant](/src/contracts/merchant)
 - [randomness](/src/contracts/randomness)

@@ -1,5 +1,5 @@
 # ChainlinkConsumer
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/31e6a3daee14ffbd0b191978eeefd42265f32d78/src/contracts/randomness/ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/31e6a3daee14ffbd0b191978eeefd42265f32d78/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
 
 **Inherits:**
 [VRFConsumerBaseV2Plus](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.VRFConsumerBaseV2Plus.md), [IVRFConsumer](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IVRFConsumer.md), [AccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md), [ReentrancyGuard](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ReentrancyGuard.md)
@@ -37,7 +37,7 @@ mapping(uint256 => uint256) private everyRandomnessRequested;
 ### randomnessCounter
 
 ```solidity
-uint256 public randomnessCounter;
+uint256 private randomnessCounter;
 ```
 
 
@@ -242,6 +242,13 @@ function requestRandomness(uint32 numWords)
 
 ```solidity
 function getRandomness(uint256 requestId) external view onlyRole(REQUESTER_ROLE) returns (uint256[] memory);
+```
+
+### getRandomnessCounter
+
+
+```solidity
+function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) returns (uint256);
 ```
 
 ### getRandomnessPosition

@@ -15,13 +15,16 @@ import {IVRFSubscriptionV2Plus} from
 
 contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl, ReentrancyGuard {
     event TransferFailed(address indexed ethOverfundAddress);
+    event RandomWordsRequested(uint256 indexed requestId, uint256 numWords, address indexed requester);
+    event RandomWordsFullfilled(uint256 indexed requestId, address indexed requester);
+    event RandomWordsPositionRequested(address indexed requester, uint256[] randomNumbers);
 
     mapping(uint256 => uint256[]) private requestIdToRandomness;
     mapping(uint256 => address) public requestIdToSender;
     mapping(uint256 => bool) public requestIdToFullfilled;
 
     mapping(uint256 => uint256) private everyRandomnessRequested;
-    uint256 private randomnessCounter;
+    uint256 public randomnessCounter;
 
     address public vrfCoordinator;
     uint256 public subscriptionId;
@@ -32,13 +35,14 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     uint256 public viewerFee;
     uint256 public holdingFeesAmount;
     uint256 public openWordRequest;
+    uint256 public maxNumWords;
 
     address public ethOverfundAddress;
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
     bytes32 public constant REQUESTER_ROLE = keccak256("REQUESTER_ROLE");
     bytes32 public constant RANDOMNESS_VIEWER = keccak256("RANDOMNESS_VIEWER");
-    bytes32 public constant PAYER_ROLE = keccak256("PAYER_ROLE");
+    bytes32 public constant FREE_ROLE = keccak256("FREE_ROLE");
 
     constructor(address _vrfCoordinator, uint256 _subscriptionId) VRFConsumerBaseV2Plus(_vrfCoordinator) {
         vrfCoordinator = _vrfCoordinator;
@@ -46,22 +50,22 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         ethOverfundAddress = msg.sender;
         _grantRole(ADMIN_ROLE, msg.sender);
         _grantRole(RANDOMNESS_VIEWER, msg.sender);
-        _grantRole(PAYER_ROLE, msg.sender);
+        _grantRole(FREE_ROLE, msg.sender);
         _setRoleAdmin(ADMIN_ROLE, ADMIN_ROLE);
         _setRoleAdmin(RANDOMNESS_VIEWER, ADMIN_ROLE);
         _setRoleAdmin(REQUESTER_ROLE, ADMIN_ROLE);
     }
 
-    function setRequesterRole(address _requester, bool _grant, bool _payer) external onlyRole(ADMIN_ROLE) {
+    function setRequesterRole(address _requester, bool _grant, bool _free) external onlyRole(ADMIN_ROLE) {
         if (_grant) {
             _grantRole(REQUESTER_ROLE, _requester);
         } else {
             _revokeRole(REQUESTER_ROLE, _requester);
         }
-        if (_payer) {
-            _grantRole(PAYER_ROLE, _requester);
+        if (_free) {
+            _grantRole(FREE_ROLE, _requester);
         } else {
-            _revokeRole(PAYER_ROLE, _requester);
+            _revokeRole(FREE_ROLE, _requester);
         }
     }
 
@@ -102,6 +106,10 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         keyHash = _keyHash;
     }
 
+    function setMaxNumWords(uint256 _maxNumWords) external onlyRole(ADMIN_ROLE) {
+        maxNumWords = _maxNumWords;
+    }
+
     function _requestRandomWords(uint32 numWords) internal returns (uint256 requestId) {
         requestId = IVRFCoordinatorV2Plus(vrfCoordinator).requestRandomWords(
             VRFV2PlusClient.RandomWordsRequest({
@@ -111,18 +119,15 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
                 callbackGasLimit: callbackGasLimit,
                 numWords: numWords,
                 // Set nativePayment to true to pay for VRF requests with Sepolia ETH instead of LINK
-                extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: false}))
+                extraArgs: VRFV2PlusClient._argsToBytes(VRFV2PlusClient.ExtraArgsV1({nativePayment: true}))
             })
         );
         requestIdToSender[requestId] = msg.sender;
         openWordRequest += uint256(numWords);
+        emit RandomWordsRequested(requestId, numWords, msg.sender);
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords)
-        internal
-        override
-        onlyRole(RANDOMNESS_VIEWER)
-    {
+    function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal override {
         for (uint256 i = 0; i < randomWords.length; i++) {
             requestIdToRandomness[requestId].push(randomWords[i]);
             everyRandomnessRequested[randomWords[i]];
@@ -134,6 +139,7 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         } else {
             openWordRequest = 0;
         }
+        emit RandomWordsFullfilled(requestId, requestIdToSender[requestId]);
     }
 
     function requestRandomness(uint32 numWords)
@@ -144,10 +150,13 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         nonReentrant
         returns (uint256)
     {
-        if (hasRole(PAYER_ROLE, msg.sender)) {
+        if (!hasRole(FREE_ROLE, msg.sender)) {
             require(msg.value >= requestFee, "Not enough ETH sent");
             _sendSubscriptionFees();
         }
+
+        require(numWords <= maxNumWords, "Number of words exceeds max number of words");
+
         return _requestRandomWords(numWords);
     }
 
@@ -155,10 +164,6 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         require(requestIdToFullfilled[requestId], "Request not fullfilled");
         require(requestIdToSender[requestId] == msg.sender, "Not the requester");
         return requestIdToRandomness[requestId];
-    }
-
-    function getRandomnessCounter() external view onlyRole(RANDOMNESS_VIEWER) returns (uint256) {
-        return randomnessCounter;
     }
 
     function getRandomnessPosition(uint256[] memory randomnessPosition)
@@ -176,6 +181,7 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
         for (uint256 i = 0; i < length; i++) {
             randomNumbers[i] = everyRandomnessRequested[randomnessPosition[i]];
         }
+        emit RandomWordsPositionRequested(msg.sender, randomNumbers);
         return randomNumbers;
     }
 
