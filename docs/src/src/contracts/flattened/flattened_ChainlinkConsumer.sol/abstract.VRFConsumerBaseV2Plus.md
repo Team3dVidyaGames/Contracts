@@ -1,0 +1,247 @@
+# VRFConsumerBaseV2Plus
+[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/31e6a3daee14ffbd0b191978eeefd42265f32d78/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
+
+**Inherits:**
+[IVRFMigratableConsumerV2Plus](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IVRFMigratableConsumerV2Plus.md), [ConfirmedOwner](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/contract.ConfirmedOwner.md)
+
+Interface for contracts using VRF randomness
+
+*PURPOSE*
+
+*Reggie the Random Oracle (not his real job) wants to provide randomness*
+
+*to Vera the verifier in such a way that Vera can be sure he's not*
+
+*making his output up to suit himself. Reggie provides Vera a public key*
+
+*to which he knows the secret key. Each time Vera provides a seed to*
+
+*Reggie, he gives back a value which is computed completely*
+
+*deterministically from the seed and the secret key.*
+
+*Reggie provides a proof by which Vera can verify that the output was*
+
+*correctly computed once Reggie tells it to her, but without that proof,*
+
+*the output is indistinguishable to her from a uniform random sample*
+
+*from the output space.*
+
+*The purpose of this contract is to make it easy for unrelated contracts*
+
+*to talk to Vera the verifier about the work Reggie is doing, to provide*
+
+*simple access to a verifiable source of randomness. It ensures 2 things:*
+
+*1. The fulfillment came from the VRFCoordinatorV2Plus.*
+
+*2. The consumer contract implements fulfillRandomWords.*
+
+*USAGE*
+
+*Calling contracts must inherit from VRFConsumerBaseV2Plus, and can*
+
+*initialize VRFConsumerBaseV2Plus's attributes in their constructor as*
+
+*shown:*
+
+*contract VRFConsumerV2Plus is VRFConsumerBaseV2Plus {*
+
+*constructor(<other arguments>, address _vrfCoordinator, address _subOwner)*
+
+*VRFConsumerBaseV2Plus(_vrfCoordinator, _subOwner) public {*
+
+*<initialization with other arguments goes here>*
+
+*}*
+
+*}*
+
+*The oracle will have given you an ID for the VRF keypair they have*
+
+*committed to (let's call it keyHash). Create a subscription, fund it*
+
+*and your consumer contract as a consumer of it (see VRFCoordinatorInterface*
+
+*subscription management functions).*
+
+*Call requestRandomWords(keyHash, subId, minimumRequestConfirmations,*
+
+*callbackGasLimit, numWords, extraArgs),*
+
+*see (IVRFCoordinatorV2Plus for a description of the arguments).*
+
+*Once the VRFCoordinatorV2Plus has received and validated the oracle's response*
+
+*to your request, it will call your contract's fulfillRandomWords method.*
+
+*The randomness argument to fulfillRandomWords is a set of random words*
+
+*generated from your requestId and the blockHash of the request.*
+
+*If your contract could have concurrent requests open, you can use the*
+
+*requestId returned from requestRandomWords to track which response is associated*
+
+*with which randomness request.*
+
+*See "SECURITY CONSIDERATIONS" for principles to keep in mind,*
+
+*if your contract could have multiple requests in flight simultaneously.*
+
+*Colliding `requestId`s are cryptographically impossible as long as seeds*
+
+*differ.*
+
+*SECURITY CONSIDERATIONS*
+
+*A method with the ability to call your fulfillRandomness method directly*
+
+*could spoof a VRF response with any random value, so it's critical that*
+
+*it cannot be directly called by anything other than this base contract*
+
+*(specifically, by the VRFConsumerBaseV2Plus.rawFulfillRandomness method).*
+
+*For your users to trust that your contract's random behavior is free*
+
+*from malicious interference, it's best if you can write it so that all*
+
+*behaviors implied by a VRF response are executed *during* your*
+
+*fulfillRandomness method. If your contract must store the response (or*
+
+*anything derived from it) and use it later, you must ensure that any*
+
+*user-significant behavior which depends on that stored value cannot be*
+
+*manipulated by a subsequent VRF request.*
+
+*Similarly, both miners and the VRF oracle itself have some influence*
+
+*over the order in which VRF responses appear on the blockchain, so if*
+
+*your contract could have multiple VRF requests in flight simultaneously,*
+
+*you must ensure that the order in which the VRF responses arrive cannot*
+
+*be used to manipulate your contract's user-significant behavior.*
+
+*Since the block hash of the block which contains the requestRandomness*
+
+*call is mixed into the input to the VRF *last*, a sufficiently powerful*
+
+*miner could, in principle, fork the blockchain to evict the block*
+
+*containing the request, forcing the request to be included in a*
+
+*different block with a different hash, and therefore a different input*
+
+*to the VRF. However, such an attack would incur a substantial economic*
+
+*cost. This cost scales with the number of blocks the VRF oracle waits*
+
+*until it calls responds to a request. It is for this reason that*
+
+*that you can signal to an oracle you'd like them to wait longer before*
+
+*responding to the request (however this is not enforced in the contract*
+
+*and so remains effective only in the case of unmodified oracle software).*
+
+
+## State Variables
+### s_vrfCoordinator
+
+```solidity
+IVRFCoordinatorV2Plus public s_vrfCoordinator;
+```
+
+
+## Functions
+### constructor
+
+
+```solidity
+constructor(address _vrfCoordinator) ConfirmedOwner(msg.sender);
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`_vrfCoordinator`|`address`|address of VRFCoordinator contract|
+
+
+### fulfillRandomWords
+
+fulfillRandomness handles the VRF response. Your contract must
+
+implement it. See "SECURITY CONSIDERATIONS" above for important
+
+principles to keep in mind when implementing your fulfillRandomness
+
+method.
+
+*VRFConsumerBaseV2Plus expects its subcontracts to have a method with this*
+
+*signature, and will call it once it has verified the proof*
+
+*associated with the randomness. (It is triggered via a call to*
+
+*rawFulfillRandomness, below.)*
+
+
+```solidity
+function fulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) internal virtual;
+```
+**Parameters**
+
+|Name|Type|Description|
+|----|----|-----------|
+|`requestId`|`uint256`|The Id initially returned by requestRandomness|
+|`randomWords`|`uint256[]`|the VRF output expanded to the requested number of words|
+
+
+### rawFulfillRandomWords
+
+
+```solidity
+function rawFulfillRandomWords(uint256 requestId, uint256[] calldata randomWords) external;
+```
+
+### setCoordinator
+
+Sets the VRF Coordinator address
+
+
+```solidity
+function setCoordinator(address _vrfCoordinator) external override onlyOwnerOrCoordinator;
+```
+
+### onlyOwnerOrCoordinator
+
+
+```solidity
+modifier onlyOwnerOrCoordinator();
+```
+
+## Errors
+### OnlyCoordinatorCanFulfill
+
+```solidity
+error OnlyCoordinatorCanFulfill(address have, address want);
+```
+
+### OnlyOwnerOrCoordinator
+
+```solidity
+error OnlyOwnerOrCoordinator(address have, address owner, address coordinator);
+```
+
+### ZeroAddress
+
+```solidity
+error ZeroAddress();
+```
+
