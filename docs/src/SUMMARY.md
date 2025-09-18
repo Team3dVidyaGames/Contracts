@@ -2,6 +2,8 @@
 - [Home](README.md)
 # src
   - [❱ contracts](src/contracts/README.md)
+    - [❱ agnosia](src/contracts/agnosia/README.md)
+      - [TCGInventory](src/contracts/agnosia/TCGInventory.sol/contract.TCGInventory.md)
     - [❱ flattened](src/contracts/flattened/README.md)
       - [Context](src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.Context.md)
       - [IAccessControl](src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IAccessControl.md)

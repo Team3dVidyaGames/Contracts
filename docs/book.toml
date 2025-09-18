@@ -7,7 +7,7 @@ no-section-label = true
 additional-js = ["solidity.min.js"]
 additional-css = ["book.css"]
 mathjax-support = true
-git-repository-url = "https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155"
+git-repository-url = "https://github.com//Team3dVidyaGames/Contracts"
 
 [output.html.fold]
 enable = true
