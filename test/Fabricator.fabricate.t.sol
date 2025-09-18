@@ -36,12 +36,7 @@ contract FabricatorFabricateTest is Test {
         uint256[] memory attrId = new uint256[](1);
         attrData[0] = 10;
         attrId[0] = 1;
-        InventoryV1155.Item memory item = InventoryV1155.Item(
-            attrData,
-            attrId,
-            "uri",
-            1
-        );
+        InventoryV1155.Item memory item = InventoryV1155.Item(attrData, attrId, "uri", 1);
         inventory.addItem(item);
 
         // Setup recipe
@@ -64,34 +59,16 @@ contract FabricatorFabricateTest is Test {
     }
 
     function _makeRecipe() private view returns (Fabricator.Recipe memory) {
-        Fabricator.MintItem memory mintItem = Fabricator.MintItem({
-            contractAddress: address(inventory),
-            id: 1,
-            amount: 1
-        });
+        Fabricator.MintItem memory mintItem =
+            Fabricator.MintItem({contractAddress: address(inventory), id: 1, amount: 1});
 
         Fabricator.Item1155[] memory items1155 = new Fabricator.Item1155[](1);
-        items1155[0] = Fabricator.Item1155({
-            contractAddress: address(inventory),
-            id: 1,
-            amount: 1,
-            burn: true
-        });
+        items1155[0] = Fabricator.Item1155({contractAddress: address(inventory), id: 1, amount: 1, burn: true});
 
         Fabricator.Item20[] memory items20 = new Fabricator.Item20[](1);
-        items20[0] = Fabricator.Item20({
-            contractAddress: address(erc20Token),
-            amount: 10 ether,
-            native: false
-        });
+        items20[0] = Fabricator.Item20({contractAddress: address(erc20Token), amount: 10 ether, native: false});
 
-        return
-            Fabricator.Recipe({
-                mintItem: mintItem,
-                creator: admin,
-                items1155: items1155,
-                items20: items20
-            });
+        return Fabricator.Recipe({mintItem: mintItem, creator: admin, items1155: items1155, items20: items20});
     }
 
     function testFabricate_Success() public {
@@ -100,43 +77,23 @@ contract FabricatorFabricateTest is Test {
         vm.startPrank(user1);
 
         assertTrue(
-            inventory.hasRole(inventory.MINTER_ROLE(), address(fabricator)),
-            "Fabricator Does not have Minter Role"
+            inventory.hasRole(inventory.MINTER_ROLE(), address(fabricator)), "Fabricator Does not have Minter Role"
         );
         fabricator.fabricate(0);
         vm.stopPrank();
 
         // Verify user1 received the minted item
-        assertEq(
-            inventory.balanceOf(user1, 1),
-            1,
-            "User1 should have received the minted item"
-        );
+        assertEq(inventory.balanceOf(user1, 1), 1, "User1 should have received the minted item");
 
         // Verify ERC20 tokens were transferred
-        assertEq(
-            erc20Token.balanceOf(user1),
-            90 ether,
-            "User1 should have spent 10 ether worth of tokens"
-        );
-        assertEq(
-            erc20Token.balanceOf(admin),
-            10 ether,
-            "Admin should have received 10 ether worth of tokens"
-        );
+        assertEq(erc20Token.balanceOf(user1), 90 ether, "User1 should have spent 10 ether worth of tokens");
+        assertEq(erc20Token.balanceOf(admin), 10 ether, "Admin should have received 10 ether worth of tokens");
     }
 
     function testFabricate_FailsIfNotEnoughItems() public {
         vm.startPrank(user2);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Fabricator.InsufficientBalance.selector,
-                address(inventory),
-                1,
-                0
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Fabricator.InsufficientBalance.selector, address(inventory), 1, 0));
         fabricator.fabricate(0);
         vm.stopPrank();
     }
@@ -150,11 +107,7 @@ contract FabricatorFabricateTest is Test {
         vm.startPrank(user2);
         // Do NOT approve fabricator
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IERC1155Errors.ERC1155MissingApprovalForAll.selector,
-                address(fabricator),
-                user2
-            )
+            abi.encodeWithSelector(IERC1155Errors.ERC1155MissingApprovalForAll.selector, address(fabricator), user2)
         );
         fabricator.fabricate(0);
         vm.stopPrank();
@@ -162,9 +115,7 @@ contract FabricatorFabricateTest is Test {
 
     function testFabricate_FailsIfRecipeDoesNotExist() public {
         vm.startPrank(user1);
-        vm.expectRevert(
-            abi.encodeWithSelector(Fabricator.RecipeDoesNotExist.selector, 1)
-        );
+        vm.expectRevert(abi.encodeWithSelector(Fabricator.RecipeDoesNotExist.selector, 1));
         fabricator.fabricate(1);
         vm.stopPrank();
     }
