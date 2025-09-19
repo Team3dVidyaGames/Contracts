@@ -42,6 +42,8 @@ forge create ./src/contracts/agnosia/TCGInventory.sol:TCGInventory \
   --broadcast \
   --verify
 
+export CONTRACT_ADDRESS=0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1
+
 # Flatten the contract for verification
 forge flatten ./src/contracts/agnosia/TCGInventory.sol -o ./src/contracts/flattened/flattened_TCGInventory.sol
 ```
@@ -59,7 +61,8 @@ cast send $CONTRACT_ADDRESS \
   0x9f2df0fed2c77648de5860a4cc508cd0818c85b8b8a1ab4ceeef8d981c8956a6 \
   0x[MINTER_ADDRESS] \
   --rpc-url $RPC_URL \
-  --keystore $KEY_PATH
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 
 # Grant contract role to an address
 cast send $CONTRACT_ADDRESS \
@@ -67,15 +70,17 @@ cast send $CONTRACT_ADDRESS \
   0x4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e235 \
   0x[CONTRACT_ADDRESS] \
   --rpc-url $RPC_URL \
-  --keystore $KEY_PATH
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 
 # Grant admin role to an address
 cast send $CONTRACT_ADDRESS \
   "grantRole(bytes32,address)" \
   0xa49807205ce4d355092ef5a8a18f56e8913cf4a201fbe287825b095693c21775 \
-  0x[ADMIN_ADDRESS] \
+  0xCda26dF2674A1eF2A451e43Ab3122F228F95c900 \
   --rpc-url $RPC_URL \
-  --keystore $KEY_PATH
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 ```
 
 ## Step 4: Add Card Templates
@@ -83,33 +88,84 @@ cast send $CONTRACT_ADDRESS \
 Create card templates for the TCG system:
 
 ```bash
+#Extract templates from a deployed contract
+node script/LaunchScripts/migration/TemplateIDExtraction.js \
+  --rpc "https://arb1.arbitrum.io/rpc" \
+  --address "0x83D4137A37c1e4DB8eB804f3e29e724fB79B26a6" \
+  --start 1 \
+  --end 110 \
+  --out ./jsons/local_templates.json
+
+#Clean the json file
+node script/LaunchScripts/migration/Clean-templates.js ./jsons/local_templates.json ./jsons/cleaned_templates.json
+
+#dry run check output
+node script/LaunchScripts/migration/Push-templates.js \
+  --rpc "https://mainnet.base.org" \
+  --address "0xCfBD8ABa030c1A1a721efc42C44cb4E1152e8069" \
+  --input jsons/cleaned_templates.json \
+  --keystore ".secrets/LaunchController" \
+  --start 6 \
+  --end 10
+
+#Live run
+node script/LaunchScripts/migration/Push-templates.js \
+  --address "0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1" \
+  --input jsons/cleaned_templates.json \
+  --rpc $RPC_URL \
+  --keyfile $KEY_PATH \
+  --password $PASSWORD \
+  --start 97 \
+  --end 110 \
+  --confirm
+
 # Add a level 1 card template
+export IMAGEURL=https://team3d.io/games/tcg_base/cards/005.gif
+export DESCRIPTION="Years of meditative mountain solitude granted this hermit psychokinetic hands of ethereal iron."
+export NAME="Evoker"
+export TOP=2
+export LEFT=5
+export RIGHT=3
+export BOTTOM=1
+export LEVEL=1
+
 cast send $CONTRACT_ADDRESS \
   "addTemplateId(string,string,string,uint8,uint8,uint8,uint8,uint8)" \
-  "https://example.com/card1.png" \
-  "A powerful level 1 card" \
-  "Fire Dragon" \
-  10 \
-  8 \
-  12 \
-  6 \
-  1 \
+  "$IMAGEURL" \
+  "$DESCRIPTION" \
+  "$NAME" \
+  $TOP \
+  $LEFT \
+  $RIGHT \
+  $BOTTOM \
+  $LEVEL \
   --rpc-url $RPC_URL \
-  --keystore $KEY_PATH
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 
 # Add a level 2 card template
+export IMAGEURL=https://team3d.io/games/tcg_base/cards/002.gif
+export DESCRIPTION="An elite level 2 card with enhanced abilities"
+export NAME="Ice Phoenix"
+export TOP=15
+export LEFT=12
+export RIGHT=18
+export BOTTOM=10
+export LEVEL=2
+
 cast send $CONTRACT_ADDRESS \
   "addTemplateId(string,string,string,uint8,uint8,uint8,uint8,uint8)" \
-  "https://example.com/card2.png" \
-  "An elite level 2 card" \
-  "Ice Phoenix" \
-  15 \
-  12 \
-  18 \
-  10 \
-  2 \
+  "$IMAGEURL" \
+  "$DESCRIPTION" \
+  "$NAME" \
+  $TOP \
+  $LEFT \
+  $RIGHT \
+  $BOTTOM \
+  $LEVEL \
   --rpc-url $RPC_URL \
-  --keystore $KEY_PATH
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 ```
 
 ## Step 5: Mint Cards
@@ -276,21 +332,42 @@ cast send "$CONTRACT_ADDRESS" \
 
 # Add initial templates
 echo "Adding card templates..."
-cast send "$CONTRACT_ADDRESS" \
-  "addTemplateId(string,string,string,uint8,uint8,uint8,uint8,uint8)" \
-  "https://example.com/fire-dragon.png" \
-  "A powerful fire dragon card" \
-  "Fire Dragon" \
-  10 8 12 6 1 \
-  --rpc-url "$RPC_URL" \
-  --keystore "$KEYSTORE_PATH"
+
+# Template 1 variables
+export IMAGEURL1="https://example.com/fire-dragon.png"
+export DESCRIPTION1="A powerful fire dragon card"
+export NAME1="Fire Dragon"
+export TOP1=10
+export LEFT1=8
+export RIGHT1=12
+export BOTTOM1=6
+export LEVEL1=1
 
 cast send "$CONTRACT_ADDRESS" \
   "addTemplateId(string,string,string,uint8,uint8,uint8,uint8,uint8)" \
-  "https://example.com/ice-phoenix.png" \
-  "An elite ice phoenix card" \
-  "Ice Phoenix" \
-  15 12 18 10 2 \
+  "$IMAGEURL1" \
+  "$DESCRIPTION1" \
+  "$NAME1" \
+  $TOP1 $LEFT1 $RIGHT1 $BOTTOM1 $LEVEL1 \
+  --rpc-url "$RPC_URL" \
+  --keystore "$KEYSTORE_PATH"
+
+# Template 2 variables
+export IMAGEURL2="https://example.com/ice-phoenix.png"
+export DESCRIPTION2="An elite ice phoenix card"
+export NAME2="Ice Phoenix"
+export TOP2=15
+export LEFT2=12
+export RIGHT2=18
+export BOTTOM2=10
+export LEVEL2=2
+
+cast send "$CONTRACT_ADDRESS" \
+  "addTemplateId(string,string,string,uint8,uint8,uint8,uint8,uint8)" \
+  "$IMAGEURL2" \
+  "$DESCRIPTION2" \
+  "$NAME2" \
+  $TOP2 $LEFT2 $RIGHT2 $BOTTOM2 $LEVEL2 \
   --rpc-url "$RPC_URL" \
   --keystore "$KEYSTORE_PATH"
 

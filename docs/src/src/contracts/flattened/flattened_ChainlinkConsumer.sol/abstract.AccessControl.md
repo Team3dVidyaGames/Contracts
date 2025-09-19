@@ -1,5 +1,5 @@
 # AccessControl
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/512679cdbe8ba50bfb5d75e26f1d9d30bbebcba4/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/587f423f64ab56a242c28dfa0c3602ff1cc24292/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
 
 **Inherits:**
 [Context](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.Context.md), [IAccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IAccessControl.md), [ERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ERC165.md)
@@ -64,7 +64,7 @@ modifier onlyRole(bytes32 role);
 
 ### supportsInterface
 
-*See [IERC165-supportsInterface](/src/contracts/interfaces/IInventoryV1155.sol/interface.IInventoryV1155.md#supportsinterface).*
+*See [IERC165-supportsInterface](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC165.md#supportsinterface).*
 
 
 ```solidity
