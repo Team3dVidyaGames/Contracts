@@ -1,5 +1,5 @@
 # ERC721
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/587f423f64ab56a242c28dfa0c3602ff1cc24292/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/979b23aadc6ba57e24bde02cea0a160d5543b450/src/contracts/flattened/flattened_TCGInventory.sol)
 
 **Inherits:**
 [Context](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.Context.md), [ERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ERC165.md), [IERC721](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md), [IERC721Metadata](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Metadata.md), [IERC721Errors](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Errors.md)
