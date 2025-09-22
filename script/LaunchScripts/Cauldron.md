@@ -44,11 +44,11 @@ ls -la out/Cauldron.sol/
 Deploy the Cauldron contract using forge with keystore:
 
 ```bash
-export KEY_PATH=<Path to keyfile>
+export KEY_PATH=.secrets/LaunchController
 export RPC_URL=https://mainnet.base.org
 export PASSWORD=<Password for keyfile, Delete before push>
-export REWARD_TOKEN=<Reward token contract address>
-export NFT_CONTRACT=<TCG Inventory NFT contract address>
+export REWARD_TOKEN=0x46c8651dDedD50CBDF71de85D3de9AaC80247B62
+export NFT_CONTRACT=0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1
 
 # Deploy using keystore file
 forge create ./src/contracts/agnosia/Cauldron.sol:Cauldron \
@@ -73,7 +73,7 @@ After deployment, initialize the point system:
 
 ```bash
 # Current deployment address (replace with actual address)
-export CONTRACT_ADDRESS=0x[YOUR_CONTRACT_ADDRESS]
+export CONTRACT_ADDRESS=0xaA3Cc06FeB0076e5E6C78262b73DED3C2eC04454
 
 # Initialize the point system (sets point values for each level)
 cast send $CONTRACT_ADDRESS \
