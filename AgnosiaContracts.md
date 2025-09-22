@@ -8,3 +8,13 @@ export const conjContractAddress = "0x946508f50263fD1330aE6D8701496b0d753e651C";
 export const cntrContractAddress = "0x5C43bef2129f2D4BC978bcC31Cc5e0a90cd886a1"; // template counter
 export const invContractAddress = "0x2Ce68A50a0e5738E675ed9a9899D86a01f2a9a0B";
 export const oldCaulContractAddress = "0x5D00524Ca34C9311DED75b89393ec9f64079965d";
+
+Base
+export const vidyaContractAddress = "0x46c8651dDedD50CBDF71de85D3de9AaC80247B62";
+export const packContractAddress = "";
+export const gameContractAddress = ""; 
+export const cardContractAddress = "0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1"; 
+export const caulContractAddress = "0xaA3Cc06FeB0076e5E6C78262b73DED3C2eC04454"; 
+export const conjContractAddress = "";
+export const cntrContractAddress = ""; // template counter
+export const invContractAddress = "";

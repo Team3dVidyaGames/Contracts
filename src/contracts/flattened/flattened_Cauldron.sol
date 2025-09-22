@@ -381,7 +381,6 @@ abstract contract Ownable is Context {
 /**
  * @author Team3d.R&D
  */
-
 interface ITCGInventory is IERC721 {
     function dataReturn(uint256 tokenId)
         external
@@ -425,7 +424,6 @@ interface ITCGInventory is IERC721 {
 /**
  * @author Team3d.R&D
  */
-
 contract WeightedSystem {
     event weightUpdated(uint256 _totalWeight, address indexed user, uint256 _userWeight);
 
@@ -470,7 +468,6 @@ contract WeightedSystem {
 /**
  * @author Team3d.R&D
  */
-
 contract DistributionSystem is WeightedSystem {
     event Claimed(address user, uint256 amount);
 
@@ -564,7 +561,6 @@ contract DistributionSystem is WeightedSystem {
 /**
  * @author Team3d.R&D
  */
-
 contract Cauldron is Ownable(msg.sender), DistributionSystem {
     event GatewaySet(address _gateway);
 
