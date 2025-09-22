@@ -1,5 +1,5 @@
 # IERC1155Errors
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/979b23aadc6ba57e24bde02cea0a160d5543b450/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/e7abd099c8ff67c53a32c1d0c029bd31930c8a9c/src/contracts/flattened/flattened_TCGInventory.sol)
 
 *Standard ERC-1155 Errors
 Interface of the https://eips.ethereum.org/EIPS/eip-6093[ERC-6093] custom errors for ERC-1155 tokens.*

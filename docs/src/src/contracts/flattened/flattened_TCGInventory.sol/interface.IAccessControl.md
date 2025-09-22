@@ -1,5 +1,5 @@
 # IAccessControl
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/979b23aadc6ba57e24bde02cea0a160d5543b450/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/e7abd099c8ff67c53a32c1d0c029bd31930c8a9c/src/contracts/flattened/flattened_TCGInventory.sol)
 
 *External interface of AccessControl declared to support ERC-165 detection.*
 

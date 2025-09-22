@@ -1,8 +1,8 @@
 # ERC721
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/979b23aadc6ba57e24bde02cea0a160d5543b450/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/e7abd099c8ff67c53a32c1d0c029bd31930c8a9c/src/contracts/flattened/flattened_TCGInventory.sol)
 
 **Inherits:**
-[Context](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.Context.md), [ERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ERC165.md), [IERC721](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md), [IERC721Metadata](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Metadata.md), [IERC721Errors](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Errors.md)
+[Context](/src/contracts/flattened/flattened_Cauldron.sol/abstract.Context.md), [ERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ERC165.md), [IERC721](/src/contracts/flattened/flattened_Cauldron.sol/interface.IERC721.md), [IERC721Metadata](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Metadata.md), [IERC721Errors](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721Errors.md)
 
 *Implementation of https://eips.ethereum.org/EIPS/eip-721[ERC-721] Non-Fungible Token Standard, including
 the Metadata extension, but not including the Enumerable extension, which is available separately as
