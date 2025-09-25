@@ -3,6 +3,7 @@
 # Contents
 - [agnosia](/src/contracts/agnosia)
 - [interfaces](/src/contracts/interfaces)
+- [libraries](/src/contracts/libraries)
 - [merchant](/src/contracts/merchant)
 - [randomness](/src/contracts/randomness)
 - [Fabricator](Fabricator.sol/contract.Fabricator.md)
