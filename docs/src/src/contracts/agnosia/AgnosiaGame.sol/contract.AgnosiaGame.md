@@ -1,5 +1,5 @@
 # AgnosiaGame
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/0bc800507d4bc35f6cc402867d99cc2a2ee30957/src/contracts/agnosia/AgnosiaGame.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/8cc4d72a909ca4f2a52b9bb1c21fb216d14debd4/src/contracts/agnosia/AgnosiaGame.sol)
 
 **Inherits:**
 ReentrancyGuard
@@ -66,6 +66,13 @@ mapping(address => mapping(uint256 => uint256[])) public directRulePrizes;
 
 ```solidity
 mapping(address => Player) public playerData;
+```
+
+
+### playerPfP
+
+```solidity
+mapping(address => Pfp[]) playerPfP;
 ```
 
 
@@ -161,7 +168,7 @@ uint8[4][9] spots = [
 
 
 ```solidity
-constructor();
+constructor(address _token, address _cards, address _items);
 ```
 
 ### initializeGame
@@ -447,7 +454,14 @@ function registerId(uint64 _discordId) external;
 
 
 ```solidity
-function updatePfp(uint256 _tokenId) external;
+function updatePfp(address _nft, uint256 _tokenId) external;
+```
+
+### getPfp
+
+
+```solidity
+function getPfp(address _player) external view returns (Pfp[] memory, uint256);
 ```
 
 ### _assignScore
@@ -760,10 +774,19 @@ struct GamePlay {
 
 ```solidity
 struct Player {
-    uint256 _tokenId;
+    uint256 _pfpArrayLength;
     uint64 _discordId;
     uint32 _wins;
     uint32 _losses;
+}
+```
+
+### Pfp
+
+```solidity
+struct Pfp {
+    address _nft;
+    uint256 _tokenId;
 }
 ```
 
