@@ -1,6 +1,8 @@
 
 
 # Contents
+- [AgnosiaGame](AgnosiaGame.sol/contract.AgnosiaGame.md)
+- [putma](AgnosiaGame.sol/library.putma.md)
 - [Cauldron](Cauldron.sol/contract.Cauldron.md)
 - [DistributionSystem](DistributionSystem.sol/contract.DistributionSystem.md)
 - [StarterPackSeller](PackSeller.sol/contract.StarterPackSeller.md)

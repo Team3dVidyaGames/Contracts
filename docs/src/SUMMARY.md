@@ -3,6 +3,8 @@
 # src
   - [❱ contracts](src/contracts/README.md)
     - [❱ agnosia](src/contracts/agnosia/README.md)
+      - [AgnosiaGame](src/contracts/agnosia/AgnosiaGame.sol/contract.AgnosiaGame.md)
+      - [putma](src/contracts/agnosia/AgnosiaGame.sol/library.putma.md)
       - [Cauldron](src/contracts/agnosia/Cauldron.sol/contract.Cauldron.md)
       - [DistributionSystem](src/contracts/agnosia/DistributionSystem.sol/contract.DistributionSystem.md)
       - [StarterPackSeller](src/contracts/agnosia/PackSeller.sol/contract.StarterPackSeller.md)
