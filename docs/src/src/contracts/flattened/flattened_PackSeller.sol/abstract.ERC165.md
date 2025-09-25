@@ -1,5 +1,5 @@
 # ERC165
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [IERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IERC165.md)
@@ -17,7 +17,7 @@ return interfaceId == type(MyInterface).interfaceId || super.supportsInterface(i
 ## Functions
 ### supportsInterface
 
-*See [IERC165-supportsInterface](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md#supportsinterface).*
+*See [IERC165-supportsInterface](/src/contracts/flattened/flattened_PackSeller.sol/abstract.AccessControl.md#supportsinterface).*
 
 
 ```solidity

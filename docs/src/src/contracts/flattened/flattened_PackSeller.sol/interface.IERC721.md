@@ -1,5 +1,5 @@
 # IERC721
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [IERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IERC165.md)
@@ -35,7 +35,7 @@ Requirements:
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
 - `tokenId` token must exist and be owned by `from`.
-- If the caller is not `from`, it must be approved to move this token by either [approve](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#approve) or {setApprovalForAll}.
+- If the caller is not `from`, it must be approved to move this token by either [approve](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#approve) or {setApprovalForAll}.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon
 a safe transfer.
 Emits a {Transfer} event.*
@@ -53,7 +53,7 @@ Requirements:
 - `from` cannot be the zero address.
 - `to` cannot be the zero address.
 - `tokenId` token must exist and be owned by `from`.
-- If the caller is not `from`, it must have been allowed to move this token by either [approve](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#approve) or
+- If the caller is not `from`, it must have been allowed to move this token by either [approve](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#approve) or
 {setApprovalForAll}.
 - If `to` refers to a smart contract, it must implement {IERC721Receiver-onERC721Received}, which is called upon
 a safe transfer.
@@ -68,7 +68,7 @@ function safeTransferFrom(address from, address to, uint256 tokenId) external;
 
 *Transfers `tokenId` token from `from` to `to`.
 WARNING: Note that the caller is responsible to confirm that the recipient is capable of receiving ERC-721
-or else they may be permanently lost. Usage of [safeTransferFrom](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#safetransferfrom) prevents loss, though the caller must
+or else they may be permanently lost. Usage of [safeTransferFrom](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#safetransferfrom) prevents loss, though the caller must
 understand this adds an external call which potentially creates a reentrancy vulnerability.
 Requirements:
 - `from` cannot be the zero address.
@@ -90,7 +90,7 @@ Only a single account can be approved at a time, so approving the zero address c
 Requirements:
 - The caller must own the token or be an approved operator.
 - `tokenId` must exist.
-Emits an [Approval](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#approval) event.*
+Emits an [Approval](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#approval) event.*
 
 
 ```solidity
@@ -100,7 +100,7 @@ function approve(address to, uint256 tokenId) external;
 ### setApprovalForAll
 
 *Approve or remove `operator` as an operator for the caller.
-Operators can call [transferFrom](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#transferfrom) or {safeTransferFrom} for any token owned by the caller.
+Operators can call [transferFrom](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#transferfrom) or {safeTransferFrom} for any token owned by the caller.
 Requirements:
 - The `operator` cannot be the address zero.
 Emits an {ApprovalForAll} event.*
@@ -124,7 +124,7 @@ function getApproved(uint256 tokenId) external view returns (address operator);
 ### isApprovedForAll
 
 *Returns if the `operator` is allowed to manage all of the assets of `owner`.
-See [setApprovalForAll](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC721.md#setapprovalforall)*
+See [setApprovalForAll](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md#setapprovalforall)*
 
 
 ```solidity

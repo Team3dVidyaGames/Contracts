@@ -39,7 +39,6 @@ contract UniswapV3Integration {
             tokenOut: token,
             fee: poolFee,
             recipient: to,
-            deadline: block.timestamp,
             amountIn: amount, // amount going to buy tokens
             amountOutMinimum: 0,
             sqrtPriceLimitX96: 0

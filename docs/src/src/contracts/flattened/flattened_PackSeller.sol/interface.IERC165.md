@@ -1,5 +1,5 @@
 # IERC165
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 *Interface of the ERC-165 standard, as defined in the
 https://eips.ethereum.org/EIPS/eip-165[ERC].

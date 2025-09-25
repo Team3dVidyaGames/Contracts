@@ -1,5 +1,5 @@
 # ISwapRouter
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/agnosia/UniRouterDataV3.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [IUniswapV3SwapCallback](/src/contracts/agnosia/UniRouterDataV3.sol/interface.IUniswapV3SwapCallback.md)
@@ -11,9 +11,6 @@ Functions for swapping tokens via Uniswap V3
 ### exactInputSingle
 
 Swaps `amountIn` of one token for as much as possible of another token
-
-*Setting `amountIn` to 0 will cause the contract to look up its own balance,
-and swap the entire amount, enabling contracts to send tokens before calling this function.*
 
 
 ```solidity
@@ -111,6 +108,7 @@ struct ExactInputSingleParams {
     address tokenOut;
     uint24 fee;
     address recipient;
+    uint256 deadline;
     uint256 amountIn;
     uint256 amountOutMinimum;
     uint160 sqrtPriceLimitX96;

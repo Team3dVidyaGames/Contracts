@@ -76,12 +76,28 @@ After deployment, configure the essential contract addresses:
 
 ```bash
 # Current deployment address (replace with actual address)
-export CONTRACT_ADDRESS=0x[YOUR_CONTRACT_ADDRESS]
+export CONTRACT_ADDRESS=0x4d2F9CC0b137a8757280b158f50FE508336580aE
 export NFT_CONTRACT=0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1
-export VRF_CONSUMER=0x[VRF_CONSUMER_ADDRESS]
+export VRF_CONSUMER=0xf4A796f7a10b86897F7236C1f111e5887526FEc4
 export PRIMARY_TOKEN=0x46c8651dDedD50CBDF71de85D3de9AaC80247B62
 export SPLITTER_ADDRESS=0x26f8d863819210A81D3CA079720e71056F0f1823
-export VAULT_ADDRESS=0x26f8d863819210A81D3CA079720e71056F0f1823
+export VAULT_ADDRESS=0xaA3Cc06FeB0076e5E6C78262b73DED3C2eC04454
+
+# Test UniswapV3Integration buyTokenETH function
+# This will swap ETH for the primary token using Uniswap V3
+# Replace UNISWAP_INTEGRATION_ADDRESS with the actual deployed address
+export POOL_FEE=10000  # 0.3% fee tier (common for major pairs)
+
+# Buy primary token with ETH (example: 0.1 ETH)
+cast send $CONTRACT_ADDRESS \
+  "buyTokenETH(address,uint24)" \
+  $PRIMARY_TOKEN \
+  $POOL_FEE \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --value 10000000000000  # 0.1 ETH in wei
+
 
 # Set NFT contract address
 cast send $CONTRACT_ADDRESS \
@@ -114,6 +130,17 @@ cast send $CONTRACT_ADDRESS \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD
+
+# Grant REQUESTER_ROLE to PackSeller contract in ChainlinkConsumer
+# This is required for the PackSeller to retrieve randomness from VRF
+cast send $VRF_CONSUMER \
+  "setRequesterRole(address,bool,bool)" \
+  $CONTRACT_ADDRESS \
+  true \
+  true \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD
 ```
 
 ## Step 4: Configure Pack Cost
@@ -121,10 +148,10 @@ cast send $CONTRACT_ADDRESS \
 Set the cost for starter packs:
 
 ```bash
-# Set pack cost (in wei, e.g., 0.005 ETH = 5000000000000000)
+# Set pack cost (in wei, e.g., 0.001 ETH = 1000000000000000)
 cast send $CONTRACT_ADDRESS \
   "changeCost(uint256)" \
-  5000000000000000 \
+  1000000000000000 \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD
@@ -155,20 +182,11 @@ Add template IDs for each level to enable minting:
 # Add template IDs for level 1 (starter packs)
 cast send $CONTRACT_ADDRESS \
   "addTemplateId(uint256[])" \
-  "[1,2,3,4,5,6,7,8,9,10]" \
+  "[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110]" \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD
 
-# Add template IDs for level 2
-cast send $CONTRACT_ADDRESS \
-  "addTemplateId(uint256[])" \
-  "[11,12,13,14,15,16,17,18,19,20]" \
-  --rpc-url $RPC_URL \
-  --keystore $KEY_PATH \
-  --password $PASSWORD
-
-# Continue for other levels as needed...
 ```
 
 ## Step 7: Fund the Contract
@@ -198,7 +216,7 @@ cast send $CONTRACT_ADDRESS \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD \
-  --value 5000000000000000
+  --value 1000000000000000
 
 # Buy with referral
 cast send $CONTRACT_ADDRESS \

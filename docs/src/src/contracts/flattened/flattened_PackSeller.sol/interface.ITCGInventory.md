@@ -1,5 +1,5 @@
 # ITCGInventory
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/interfaces/ITCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [IERC721](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md)

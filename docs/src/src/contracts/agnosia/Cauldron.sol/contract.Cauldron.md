@@ -1,8 +1,8 @@
 # Cauldron
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/e7abd099c8ff67c53a32c1d0c029bd31930c8a9c/src/contracts/agnosia/Cauldron.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/agnosia/Cauldron.sol)
 
 **Inherits:**
-[Ownable](/src/contracts/flattened/flattened_Cauldron.sol/abstract.Ownable.md), [DistributionSystem](/src/contracts/agnosia/DistributionSystem.sol/contract.DistributionSystem.md)
+Ownable, [DistributionSystem](/src/contracts/agnosia/DistributionSystem.sol/contract.DistributionSystem.md)
 
 **Author:**
 Team3d.R&D

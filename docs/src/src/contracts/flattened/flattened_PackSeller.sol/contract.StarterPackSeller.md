@@ -1,5 +1,5 @@
 # StarterPackSeller
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/agnosia/PackSeller.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [ReentrancyGuard](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ReentrancyGuard.md), [AccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md), [UniswapV3Integration](/src/contracts/agnosia/UniswapV3Integration.sol/contract.UniswapV3Integration.md)

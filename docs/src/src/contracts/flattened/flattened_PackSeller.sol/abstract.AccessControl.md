@@ -1,5 +1,5 @@
 # AccessControl
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_ChainlinkConsumer.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_PackSeller.sol)
 
 **Inherits:**
 [Context](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.Context.md), [IAccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/interface.IAccessControl.md), [ERC165](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ERC165.md)
@@ -64,7 +64,7 @@ modifier onlyRole(bytes32 role);
 
 ### supportsInterface
 
-*See [IERC165-supportsInterface](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC165.md#supportsinterface).*
+*See [IERC165-supportsInterface](/src/contracts/flattened/flattened_TCGInventory.sol/interface.IERC165.md#supportsinterface).*
 
 
 ```solidity
@@ -102,7 +102,7 @@ function _checkRole(bytes32 role, address account) internal view virtual;
 
 ### getRoleAdmin
 
-*Returns the admin role that controls `role`. See [grantRole](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md#grantrole) and
+*Returns the admin role that controls `role`. See [grantRole](/src/contracts/flattened/flattened_PackSeller.sol/abstract.AccessControl.md#grantrole) and
 {revokeRole}.
 To change a role's admin, use {_setRoleAdmin}.*
 
@@ -141,7 +141,7 @@ function revokeRole(bytes32 role, address account) public virtual onlyRole(getRo
 ### renounceRole
 
 *Revokes `role` from the calling account.
-Roles are often managed via [grantRole](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md#grantrole) and {revokeRole}: this function's
+Roles are often managed via [grantRole](/src/contracts/flattened/flattened_PackSeller.sol/abstract.AccessControl.md#grantrole) and {revokeRole}: this function's
 purpose is to provide a mechanism for accounts to lose their privileges
 if they are compromised (such as when a trusted device is misplaced).
 If the calling account had been revoked `role`, emits a {RoleRevoked}

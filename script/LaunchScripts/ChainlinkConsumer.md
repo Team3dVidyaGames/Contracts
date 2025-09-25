@@ -46,6 +46,10 @@ export KEY_PATH=<Pathe to keyfile>
 export RPC_URL=https://mainnet.base.org
 export PASSWORD=<Password for keyfile, Delete before push>
 
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
+
 # Deploy using keystore file
 forge create ./src/contracts/randomness/ChainlinkConsumer.sol:ChainlinkConsumer \
   --rpc-url $RPC_URL \
@@ -54,8 +58,8 @@ forge create ./src/contracts/randomness/ChainlinkConsumer.sol:ChainlinkConsumer 
   --broadcast \
   --verify \
   --constructor-args \
-    0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634 \ 
-    Subscription_ID 
+    $VRF_COORDINATOR \
+    $SUBSCRIPTION_ID 
   
 forge flatten ./src/contracts/randomness/ChainlinkConsumer.sol -o ./src/contracts/flattened/flattened_ChainlinkConsumer.sol
 
@@ -71,7 +75,7 @@ After deployment, configure the VRF parameters using cast:
 
 ```bash
 #Current deployment on Base
-export CONTRACT_ADDRESS=0x87857020355a55bbc88f7514Cf7F4e8De407Ea88
+export CONTRACT_ADDRESS=0xf4A796f7a10b86897F7236C1f111e5887526FEc4
 
 # Set key hash (replace CONTRACT_ADDRESS with actual address)
 cast send $CONTRACT_ADDRESS \
@@ -119,14 +123,14 @@ cast send $CONTRACT_ADDRESS \
 Configure user roles for the contract:
 
 ```bash
-export USER=<Address of Role assingment>
+export USER=0x4d2F9CC0b137a8757280b158f50FE508336580aE
 
 # Grant requester role to an address
 cast send $CONTRACT_ADDRESS \
   "setRequesterRole(address,bool,bool)" \
   $USER \
   true \
-  false \
+  true \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD
@@ -249,12 +253,16 @@ anvil
 
 # Create a keystore for testing (optional - you can use the default account)
 # In another terminal, deploy to local network using keystore
+# Constructor arguments for local testing
+export VRF_COORDINATOR=0x[VRF_COORDINATOR]
+export SUBSCRIPTION_ID=1
+
 forge create \
   --rpc-url http://localhost:8545 \
   --keystore /path/to/test/keystore \
   --constructor-args \
-    0x[VRF_COORDINATOR] \
-    1 \
+    $VRF_COORDINATOR \
+    $SUBSCRIPTION_ID \
   src/contracts/randomness/ChainlinkConsumer.sol:ChainlinkConsumer
 ```
 
@@ -280,6 +288,10 @@ Verify the contract on block explorers to make it publicly readable and enable i
 # Set your Etherscan API key
 export ETHERSCAN_API_KEY="your_etherscan_api_key_here"
 
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
+
 # Verify the contract
 forge verify-contract \
   --chain-id 1 \
@@ -297,6 +309,10 @@ forge verify-contract \
 ```bash
 # Set your Polygonscan API key
 export POLYGONSCAN_API_KEY="your_polygonscan_api_key_here"
+
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
 
 # Verify the contract
 forge verify-contract \
@@ -316,6 +332,10 @@ forge verify-contract \
 # Set your Basescan API key
 export BASESCAN_API_KEY="your_basescan_api_key_here"
 
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
+
 # Verify the contract
 forge verify-contract \
   --chain-id 84532 \
@@ -333,6 +353,10 @@ forge verify-contract \
 ```bash
 # Set your Etherscan API key
 export ETHERSCAN_API_KEY="your_etherscan_api_key_here"
+
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
 
 # Verify the contract
 forge verify-contract \
@@ -353,6 +377,10 @@ If automatic verification fails, you can verify manually:
 #### Step 1: Get Constructor Arguments
 
 ```bash
+# Constructor arguments
+export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
+
 # Get the constructor arguments in the correct format
 cast abi-encode "constructor(address,uint256)" $VRF_COORDINATOR $SUBSCRIPTION_ID
 ```
@@ -401,8 +429,8 @@ Here's a complete script that handles verification for multiple networks:
 
 # Configuration
 CONTRACT_ADDRESS="0x[YOUR_CONTRACT_ADDRESS]"
-VRF_COORDINATOR="0x271682DEB8C4E0901D1a1550aD2e64D568E69909"
-SUBSCRIPTION_ID="123"
+VRF_COORDINATOR="0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634"
+SUBSCRIPTION_ID="109954455653405525541299880847464881920062582089912099099723824471955263269369"
 
 # API Keys (set these as environment variables)
 # export ETHERSCAN_API_KEY="your_key_here"
@@ -455,6 +483,10 @@ echo "Verification process complete!"
 
 2. **Constructor Arguments Mismatch**
    ```bash
+   # Constructor arguments
+   export VRF_COORDINATOR=0xd5D517aBE5cF79B7e95eC98dB0f0277788aFF634
+   export SUBSCRIPTION_ID=109954455653405525541299880847464881920062582089912099099723824471955263269369
+   
    # Double-check constructor arguments
    cast abi-encode "constructor(address,uint256)" $VRF_COORDINATOR $SUBSCRIPTION_ID
    ```

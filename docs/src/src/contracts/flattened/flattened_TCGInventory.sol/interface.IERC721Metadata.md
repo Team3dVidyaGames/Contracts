@@ -1,8 +1,8 @@
 # IERC721Metadata
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/e7abd099c8ff67c53a32c1d0c029bd31930c8a9c/src/contracts/flattened/flattened_TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/flattened/flattened_TCGInventory.sol)
 
 **Inherits:**
-[IERC721](/src/contracts/flattened/flattened_Cauldron.sol/interface.IERC721.md)
+[IERC721](/src/contracts/flattened/flattened_PackSeller.sol/interface.IERC721.md)
 
 *See https://eips.ethereum.org/EIPS/eip-721*
 
