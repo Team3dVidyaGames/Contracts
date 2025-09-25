@@ -72,7 +72,14 @@ contract AgnosiaGame is ReentrancyGuard {
     address[] public allPlayers; // List of all players who ever played
     uint256[] public gamesWaitingPlayer;
 
-    uint256[6] public forfeitTimers = [5 minutes, 15 minutes, 30 minutes, 1 hours, 12 hours, 24 hours]; // timers limit when players need to make a move or lose otherwise
+    uint256[6] public forfeitTimers = [
+        5 minutes,
+        15 minutes,
+        30 minutes,
+        1 hours,
+        12 hours,
+        24 hours
+    ]; // timers limit when players need to make a move or lose otherwise
     mapping(uint256 => uint256) public gameIndexToTimerRule;
     uint256 public gamesCreated;
     uint256 public minimumWager;
@@ -93,10 +100,10 @@ contract AgnosiaGame is ReentrancyGuard {
         [5, 7, 9, 9]
     ]; // used for the board, 9 is out of bounds
 
-    constructor() {
-        token = IERC20(address(0x3d48ae69a2F35D02d6F0c5E84CFE66bE885f3963)); // Vidya
-        cards = ITCGInventory(address(0x83D4137A37c1e4DB8eB804f3e29e724fB79B26a6)); // Agnosia cards
-        items = IERC721(address(0x2Ce68A50a0e5738E675ed9a9899D86a01f2a9a0B)); // TeamOS inventory
+    constructor(address _token, address _cards, address _items) {
+        token = IERC20(_token); // Vidya
+        cards = ITCGInventory(_cards); // Agnosia cards
+        items = IERC721(_items); // TeamOS inventory
         minimumWager = 1 ether;
     }
 
@@ -109,15 +116,33 @@ contract AgnosiaGame is ReentrancyGuard {
         address _friend,
         uint256 timerRule
     );
-    event JoinedGame(address _whoJoined, address _whoseGame, uint256 indexed _gameId, uint256[5] _tokenIdOfCardsToPlay);
+    event JoinedGame(
+        address _whoJoined,
+        address _whoseGame,
+        uint256 indexed _gameId,
+        uint256[5] _tokenIdOfCardsToPlay
+    );
     event CardPlacedOnBoard(
-        uint256 _tokenId, uint256 indexed _gameIndex, uint8 _boardPosition, bool[4] same, uint8[4] plus
+        uint256 _tokenId,
+        uint256 indexed _gameIndex,
+        uint8 _boardPosition,
+        bool[4] same,
+        uint8[4] plus
     );
     event CollectWinnings(
-        uint256 indexed gameId, address winner, address loser, uint256[] prize, uint256 bet, bool draw
+        uint256 indexed gameId,
+        address winner,
+        address loser,
+        uint256[] prize,
+        uint256 bet,
+        bool draw
     );
     event directCards(
-        uint256 indexed gameIndex, address player1, address player2, uint256[] directPrize1, uint256[] directPrize2
+        uint256 indexed gameIndex,
+        address player1,
+        address player2,
+        uint256[] directPrize1,
+        uint256[] directPrize2
     );
     event GameCanceled(uint256 indexed gameIndex);
     event CardCaptured(uint256 tokenId, uint8 boardPosition);
@@ -158,7 +183,11 @@ contract AgnosiaGame is ReentrancyGuard {
             gp.wager = wager;
         }
 
-        gameSumRequired[gameId] = _buildHand(tokenIdOfCardsToPlay, user, gameId);
+        gameSumRequired[gameId] = _buildHand(
+            tokenIdOfCardsToPlay,
+            user,
+            gameId
+        );
         if (limitLevels) {
             gameSumRequired[gameId] += levelsAbove;
         } else {
@@ -172,20 +201,31 @@ contract AgnosiaGame is ReentrancyGuard {
         gamesCreated = gameId;
         gamesWaitingPlayer.push(gameId);
 
-        emit GameInitialized(gameId, tokenIdOfCardsToPlay, wager, tradeRule, _friend, _timerRule);
+        emit GameInitialized(
+            gameId,
+            tokenIdOfCardsToPlay,
+            wager,
+            tradeRule,
+            _friend,
+            _timerRule
+        );
     }
 
     /**
      * @dev function to build the hand for the new game
      */
-    function _buildHand(uint256[5] memory tokenIdOfCardsToPlay, address user, uint256 index)
-        internal
-        returns (uint8 sum)
-    {
+    function _buildHand(
+        uint256[5] memory tokenIdOfCardsToPlay,
+        address user,
+        uint256 index
+    ) internal returns (uint8 sum) {
         GamePlay storage gp = gamesPlayed[index];
 
-        for (uint256 x = 0; x < 5;) {
-            require(cards.ownerOf(tokenIdOfCardsToPlay[x]) == address(this), "Deposit Card First");
+        for (uint256 x = 0; x < 5; ) {
+            require(
+                cards.ownerOf(tokenIdOfCardsToPlay[x]) == address(this),
+                "Deposit Card First"
+            );
             Card storage c = tokenIdToCard[tokenIdOfCardsToPlay[x]];
             require(c.owner == user, "Not the owner of Card");
             require(c.currentGameIndex == 0, "Card is already in game");
@@ -209,15 +249,20 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param gameWaitingIndex the location in the array of the game they want to play
      * @param creator a secondary check to ensure that the gameWaitingIndex selected matches what the caller wants
      */
-    function joinGame(uint256[5] memory tokenIdOfCardsToPlay, uint256 gameWaitingIndex, address creator)
-        external
-        nonReentrant
-    {
+    function joinGame(
+        uint256[5] memory tokenIdOfCardsToPlay,
+        uint256 gameWaitingIndex,
+        address creator
+    ) external nonReentrant {
         uint256 gameIndex = gamesWaitingPlayer[gameWaitingIndex];
         address user = msg.sender;
 
         // Check if it's a public game or a friend game
-        require(friendGames[gameIndex] == address(0) || friendGames[gameIndex] == msg.sender, "Not a fren, sorry!");
+        require(
+            friendGames[gameIndex] == address(0) ||
+                friendGames[gameIndex] == msg.sender,
+            "Not a fren, sorry!"
+        );
 
         GamePlay storage gp = gamesPlayed[gameIndex];
 
@@ -233,7 +278,10 @@ contract AgnosiaGame is ReentrancyGuard {
 
         // For when creators set card level caps for games
         uint8 sum = _buildHand(tokenIdOfCardsToPlay, user, gameIndex); // sum of levels of cards in hand
-        require(sum <= gameSumRequired[gameIndex], "Card levels are too high for this game.");
+        require(
+            sum <= gameSumRequired[gameIndex],
+            "Card levels are too high for this game."
+        );
 
         gp.lastMove = block.timestamp;
         _removeFromWaiting(gameWaitingIndex, gameIndex);
@@ -247,9 +295,15 @@ contract AgnosiaGame is ReentrancyGuard {
     /**
      * @dev function to remove game from waiting List
      */
-    function _removeFromWaiting(uint256 gameWaitingIndex, uint256 gameIndex) internal {
+    function _removeFromWaiting(
+        uint256 gameWaitingIndex,
+        uint256 gameIndex
+    ) internal {
         uint256 lastOne = gamesWaitingPlayer.length - 1;
-        require(gamesWaitingPlayer[gameWaitingIndex] == gameIndex, "Game Index does not match waiting list");
+        require(
+            gamesWaitingPlayer[gameWaitingIndex] == gameIndex,
+            "Game Index does not match waiting list"
+        );
 
         gamesWaitingPlayer[gameWaitingIndex] = gamesWaitingPlayer[lastOne];
         gamesWaitingPlayer.pop();
@@ -270,14 +324,17 @@ contract AgnosiaGame is ReentrancyGuard {
             gp.wager = 0;
         }
 
-        for (uint256 x = 0; x < 5;) {
+        for (uint256 x = 0; x < 5; ) {
             tokenIdToCard[gp.playerHand[user][x]].currentGameIndex = 0; // Makes card tradeable
             unchecked {
                 x++;
             }
         }
 
-        _removeFromWaiting(gameWaitingIndex, gamesWaitingPlayer[gameWaitingIndex]);
+        _removeFromWaiting(
+            gameWaitingIndex,
+            gamesWaitingPlayer[gameWaitingIndex]
+        );
 
         gp.gameFinished = true;
         gp.isFinalized = true;
@@ -292,7 +349,7 @@ contract AgnosiaGame is ReentrancyGuard {
         uint256 l = tokenIds.length;
         address user = msg.sender;
 
-        for (uint256 x = 0; x < l;) {
+        for (uint256 x = 0; x < l; ) {
             uint256 id = tokenIds[x];
             require(cards.ownerOf(id) == user, "Sender must be owner");
             cards.transferFrom(user, address(this), id);
@@ -312,7 +369,16 @@ contract AgnosiaGame is ReentrancyGuard {
         Card memory c;
         c.tokenID = tokenId;
         // top          left         right        bottom
-        (c.level, c.powers[0], c.powers[1], c.powers[3], c.powers[2],,,) = cards.dataReturn(tokenId);
+        (
+            c.level,
+            c.powers[0],
+            c.powers[1],
+            c.powers[3],
+            c.powers[2],
+            ,
+            ,
+
+        ) = cards.dataReturn(tokenId);
         c.owner = user;
         c.userIndex = playersDeck[user].length;
         playersDeck[user].push(tokenId);
@@ -328,9 +394,12 @@ contract AgnosiaGame is ReentrancyGuard {
         uint256 l = tokenIds.length;
         require(l <= playersDeck[user].length, "Out of bounds");
 
-        for (uint256 x = 0; x < l;) {
+        for (uint256 x = 0; x < l; ) {
             require(tokenIdToCard[tokenIds[x]].owner == user, "Not owner");
-            require(tokenIdToCard[tokenIds[x]].currentGameIndex == 0, "Card in Game Currently");
+            require(
+                tokenIdToCard[tokenIds[x]].currentGameIndex == 0,
+                "Card in Game Currently"
+            );
             _removeFromDeck(user, tokenIds[x]);
             cards.transferFrom(address(this), user, tokenIds[x]);
 
@@ -364,20 +433,33 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param gameIndex refers to the game being played
      * @param boardPosition refers to where the card is to be placed
      */
-    function placeCardOnBoard(uint256 indexInHand, uint256 gameIndex, uint8 boardPosition) external nonReentrant {
+    function placeCardOnBoard(
+        uint256 indexInHand,
+        uint256 gameIndex,
+        uint8 boardPosition
+    ) external nonReentrant {
         GamePlay storage game = gamesPlayed[gameIndex];
         address user = msg.sender;
         require(!game.isFinalized, "Game already finalized");
         require(game.player2 != address(0), "No second player yet");
-        bool canPlay = (game.player1 == user && !game.isTurn) || (game.player2 == user && game.isTurn); // is a users turn
+        bool canPlay = (game.player1 == user && !game.isTurn) ||
+            (game.player2 == user && game.isTurn); // is a users turn
         require(canPlay, "Not a player or turn yet");
         require(boardPosition < 9, "Position out of bounds");
-        require(game.board[boardPosition].owner == address(0), "Position already taken");
-        require(game.playerHand[user].length > indexInHand, "Hand out of bounds");
+        require(
+            game.board[boardPosition].owner == address(0),
+            "Position already taken"
+        );
+        require(
+            game.playerHand[user].length > indexInHand,
+            "Hand out of bounds"
+        );
 
         game.isTurn = !game.isTurn;
         uint256 tokenId = game.playerHand[user][indexInHand];
-        game.playerHand[user][indexInHand] = game.playerHand[user][game.playerHand[user].length - 1];
+        game.playerHand[user][indexInHand] = game.playerHand[user][
+            game.playerHand[user].length - 1
+        ];
         game.playerHand[user].pop();
         game.board[boardPosition] = tokenIdToCard[tokenId];
 
@@ -387,7 +469,7 @@ contract AgnosiaGame is ReentrancyGuard {
         bool[4] memory indexToChange;
         uint8 sameCount;
 
-        for (uint8 i = 0; i < 4;) {
+        for (uint8 i = 0; i < 4; ) {
             uint8 pos = otherPos[i];
             if (pos < 9) {
                 // pos is on the board
@@ -414,7 +496,7 @@ contract AgnosiaGame is ReentrancyGuard {
 
         if (truth || sameCount > 1) {
             bool sT = sameCount > 1;
-            for (uint8 i = 0; i < 4;) {
+            for (uint8 i = 0; i < 4; ) {
                 // Found Sum Match at index
                 if (ar[i] > 0) {
                     indexToChange[ar[i]] = true;
@@ -435,7 +517,7 @@ contract AgnosiaGame is ReentrancyGuard {
         if (other == user) {
             other = game.player2;
         }
-        for (uint8 i = 0; i < 4;) {
+        for (uint8 i = 0; i < 4; ) {
             if (indexToChange[i] && game.board[otherPos[i]].owner == other) {
                 game.board[otherPos[i]].owner = user;
                 game.points[other] -= 1;
@@ -456,18 +538,29 @@ contract AgnosiaGame is ReentrancyGuard {
         emit CardPlacedOnBoard(tokenId, gameIndex, boardPosition, same, ar);
     }
 
-    function canFinalizeGame(address user, uint256 gameIndex) public view returns (bool) {
+    function canFinalizeGame(
+        address user,
+        uint256 gameIndex
+    ) public view returns (bool) {
         bool canClaim = false;
 
-        if (user == gamesPlayed[gameIndex].player1 || user == gamesPlayed[gameIndex].player2) {
+        if (
+            user == gamesPlayed[gameIndex].player1 ||
+            user == gamesPlayed[gameIndex].player2
+        ) {
             if (gamesPlayed[gameIndex].gameFinished) {
                 address other = gamesPlayed[gameIndex].player1;
                 if (other == user) {
                     other = gamesPlayed[gameIndex].player2;
                 }
-                canClaim = gamesPlayed[gameIndex].points[user] >= gamesPlayed[gameIndex].points[other]; //is Winner
+                canClaim =
+                    gamesPlayed[gameIndex].points[user] >=
+                    gamesPlayed[gameIndex].points[other]; //is Winner
 
-                if (gamesPlayed[gameIndex].lastMove > block.timestamp - gameIndexToTimerRule[gameIndex]) {
+                if (
+                    gamesPlayed[gameIndex].lastMove >
+                    block.timestamp - gameIndexToTimerRule[gameIndex]
+                ) {
                     //If finished for more then the timer rule the loser can finalize can finalize
                     canClaim = true;
                 }
@@ -483,10 +576,14 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param gameIndex refers to game
      * @param cardsToClaimTokenIds used to claim cards if not draw or direct
      */
-    function collectWinnings(uint256 gameIndex, uint256[] memory cardsToClaimTokenIds) external nonReentrant {
+    function collectWinnings(
+        uint256 gameIndex,
+        uint256[] memory cardsToClaimTokenIds
+    ) external nonReentrant {
         address user = msg.sender;
         require(
-            user == gamesPlayed[gameIndex].player1 || user == gamesPlayed[gameIndex].player2,
+            user == gamesPlayed[gameIndex].player1 ||
+                user == gamesPlayed[gameIndex].player2,
             "Must be a player of the game."
         );
         require(!gamesPlayed[gameIndex].isFinalized, "Already Collected");
@@ -499,8 +596,10 @@ contract AgnosiaGame is ReentrancyGuard {
         if (forfeit(gameIndex)) {
             // If forfeit timer is reached then the caller must be the
             require(
-                !(gamesPlayed[gameIndex].player1 == user && !gamesPlayed[gameIndex].isTurn)
-                    || (gamesPlayed[gameIndex].player2 == user && gamesPlayed[gameIndex].isTurn),
+                !(gamesPlayed[gameIndex].player1 == user &&
+                    !gamesPlayed[gameIndex].isTurn) ||
+                    (gamesPlayed[gameIndex].player2 == user &&
+                        gamesPlayed[gameIndex].isTurn),
                 "Only player whose turn is not it."
             ); // users turn
 
@@ -509,10 +608,14 @@ contract AgnosiaGame is ReentrancyGuard {
         } else {
             require(gamesPlayed[gameIndex].gameFinished, "Game still playing");
 
-            if ((gamesPlayed[gameIndex].points[user] < gamesPlayed[gameIndex].points[other])) {
+            if (
+                (gamesPlayed[gameIndex].points[user] <
+                    gamesPlayed[gameIndex].points[other])
+            ) {
                 // if not winner finalizing
                 require(
-                    gamesPlayed[gameIndex].lastMove > block.timestamp - gameIndexToTimerRule[gameIndex],
+                    gamesPlayed[gameIndex].lastMove >
+                        block.timestamp - gameIndexToTimerRule[gameIndex],
                     "Loser can only finalize after turn timer is up"
                 );
                 // need to swap user and other to make logic work for winning and losing.
@@ -521,8 +624,9 @@ contract AgnosiaGame is ReentrancyGuard {
             }
 
             if (
-                gamesPlayed[gameIndex].points[user] == gamesPlayed[gameIndex].points[other]
-                    && gamesPlayed[gameIndex].tradeRule != 2
+                gamesPlayed[gameIndex].points[user] ==
+                gamesPlayed[gameIndex].points[other] &&
+                gamesPlayed[gameIndex].tradeRule != 2
             ) {
                 // if draw
                 drawReturnCardsFromBoard(gameIndex, other, user);
@@ -538,8 +642,13 @@ contract AgnosiaGame is ReentrancyGuard {
 
             // Free up cards in users hand
             if (gamesPlayed[gameIndex].playerHand[user].length > 0) {
-                for (uint256 i = 0; i < gamesPlayed[gameIndex].playerHand[user].length;) {
-                    tokenIdToCard[gamesPlayed[gameIndex].playerHand[user][i]].currentGameIndex = 0;
+                for (
+                    uint256 i = 0;
+                    i < gamesPlayed[gameIndex].playerHand[user].length;
+
+                ) {
+                    tokenIdToCard[gamesPlayed[gameIndex].playerHand[user][i]]
+                        .currentGameIndex = 0;
                     unchecked {
                         i++;
                     }
@@ -548,8 +657,13 @@ contract AgnosiaGame is ReentrancyGuard {
 
             // Free up cards in others hand
             if (gamesPlayed[gameIndex].playerHand[other].length > 0) {
-                for (uint256 i = 0; i < gamesPlayed[gameIndex].playerHand[other].length;) {
-                    tokenIdToCard[gamesPlayed[gameIndex].playerHand[other][i]].currentGameIndex = 0;
+                for (
+                    uint256 i = 0;
+                    i < gamesPlayed[gameIndex].playerHand[other].length;
+
+                ) {
+                    tokenIdToCard[gamesPlayed[gameIndex].playerHand[other][i]]
+                        .currentGameIndex = 0;
                     unchecked {
                         i++;
                     }
@@ -569,14 +683,19 @@ contract AgnosiaGame is ReentrancyGuard {
             other,
             gamesPlayed[gameIndex].prizeCollected,
             gamesPlayed[gameIndex].wager,
-            gamesPlayed[gameIndex].points[user] == gamesPlayed[gameIndex].points[other]
+            gamesPlayed[gameIndex].points[user] ==
+                gamesPlayed[gameIndex].points[other]
         );
     }
 
-    function forfeitReturn(uint256 gameIndex, address user, address other) internal {
+    function forfeitReturn(
+        uint256 gameIndex,
+        address user,
+        address other
+    ) internal {
         GamePlay storage g = gamesPlayed[gameIndex];
 
-        for (uint256 i = 0; i < 5;) {
+        for (uint256 i = 0; i < 5; ) {
             uint256 tokenId = g.startingHand[other][i];
             _transferCard(tokenId, gameIndex, user, other); // Forfeit player loses all cards.
             g.prizeCollected.push(tokenId);
@@ -598,10 +717,14 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param other non-msg.sender
      * @param user msg.sender
      */
-    function drawReturnCardsFromBoard(uint256 gameIndex, address other, address user) internal {
+    function drawReturnCardsFromBoard(
+        uint256 gameIndex,
+        address other,
+        address user
+    ) internal {
         GamePlay storage g = gamesPlayed[gameIndex];
 
-        for (uint256 i = 0; i < 9;) {
+        for (uint256 i = 0; i < 9; ) {
             updateCards(0, g.board[i].tokenID);
             unchecked {
                 i++;
@@ -622,7 +745,7 @@ contract AgnosiaGame is ReentrancyGuard {
     function directReturnCards(uint256 gameIndex, address user) internal {
         GamePlay storage g = gamesPlayed[gameIndex];
 
-        for (uint256 i = 0; i < 9;) {
+        for (uint256 i = 0; i < 9; ) {
             uint256 tokenId = g.board[i].tokenID;
             uint256 win;
             if (g.board[i].owner == user) {
@@ -630,7 +753,12 @@ contract AgnosiaGame is ReentrancyGuard {
             }
             if (g.board[i].owner != tokenIdToCard[tokenId].owner) {
                 // if card on board is controlled by winner but not owned
-                _transferCard(tokenId, gameIndex, g.board[i].owner, tokenIdToCard[tokenId].owner);
+                _transferCard(
+                    tokenId,
+                    gameIndex,
+                    g.board[i].owner,
+                    tokenIdToCard[tokenId].owner
+                );
                 directRulePrizes[g.board[i].owner][gameIndex].push(tokenId);
             }
 
@@ -660,9 +788,15 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param newOwner new owner of card
      * @param currentOwner current owner of card
      */
-    function _transferCard(uint256 tokenId, uint256 gameIndex, address newOwner, address currentOwner) internal {
+    function _transferCard(
+        uint256 tokenId,
+        uint256 gameIndex,
+        address newOwner,
+        address currentOwner
+    ) internal {
         require(
-            tokenIdToCard[tokenId].owner == currentOwner && tokenIdToCard[tokenId].currentGameIndex == gameIndex,
+            tokenIdToCard[tokenId].owner == currentOwner &&
+                tokenIdToCard[tokenId].currentGameIndex == gameIndex,
             "Card does not meet requirements"
         );
         _removeFromDeck(currentOwner, tokenId);
@@ -686,19 +820,34 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param user msg.sender and winner
      * @param cardsToClaimTokenIds winner card claim
      */
-    function returnCards(uint256 gameIndex, address other, address user, uint256[] memory cardsToClaimTokenIds)
-        internal
-    {
+    function returnCards(
+        uint256 gameIndex,
+        address other,
+        address user,
+        uint256[] memory cardsToClaimTokenIds
+    ) internal {
         GamePlay storage g = gamesPlayed[gameIndex];
 
-        uint256 cardsToCollect = putma.cardsToCollect(g.tradeRule, g.points[user], g.points[other]);
+        uint256 cardsToCollect = putma.cardsToCollect(
+            g.tradeRule,
+            g.points[user],
+            g.points[other]
+        );
 
         if (cardsToCollect > 0) {
-            require(cardsToClaimTokenIds.length == cardsToCollect, "length does not match winnings to claim");
+            require(
+                cardsToClaimTokenIds.length == cardsToCollect,
+                "length does not match winnings to claim"
+            );
             if (g.tradeRule != 2) {
                 // !direct
-                for (uint256 i = 0; i < cardsToCollect;) {
-                    _transferCard(cardsToClaimTokenIds[i], gameIndex, user, other);
+                for (uint256 i = 0; i < cardsToCollect; ) {
+                    _transferCard(
+                        cardsToClaimTokenIds[i],
+                        gameIndex,
+                        user,
+                        other
+                    );
                     g.prizeCollected.push(cardsToClaimTokenIds[i]);
                     unchecked {
                         i++;
@@ -707,7 +856,7 @@ contract AgnosiaGame is ReentrancyGuard {
             }
         }
 
-        for (uint256 i = 0; i < 9;) {
+        for (uint256 i = 0; i < 9; ) {
             uint256 tokenId = g.board[i].tokenID;
             uint256 win;
 
@@ -738,7 +887,10 @@ contract AgnosiaGame is ReentrancyGuard {
     }
 
     function updatePfp(uint256 _tokenId) external {
-        require(items.ownerOf(_tokenId) == msg.sender, "Not the owner of this item.");
+        require(
+            items.ownerOf(_tokenId) == msg.sender,
+            "Not the owner of this item."
+        );
         playerData[msg.sender]._tokenId = _tokenId;
     }
 
@@ -772,7 +924,10 @@ contract AgnosiaGame is ReentrancyGuard {
         // Sort the array
         for (uint256 i = 0; i < playerCount; i++) {
             for (uint256 j = i + 1; j < playerCount; j++) {
-                if (playerData[sortedPlayers[i]]._wins < playerData[sortedPlayers[j]]._wins) {
+                if (
+                    playerData[sortedPlayers[i]]._wins <
+                    playerData[sortedPlayers[j]]._wins
+                ) {
                     // swap
                     address temp = sortedPlayers[i];
                     sortedPlayers[i] = sortedPlayers[j];
@@ -798,7 +953,9 @@ contract AgnosiaGame is ReentrancyGuard {
      * @return size the number of cards in deck
      * @return deck the tokenIds of cards in deck
      */
-    function deckInfo(address player) external view returns (uint256 size, uint256[] memory deck) {
+    function deckInfo(
+        address player
+    ) external view returns (uint256 size, uint256[] memory deck) {
         size = playersDeck[player].length;
         deck = playersDeck[player];
     }
@@ -829,7 +986,9 @@ contract AgnosiaGame is ReentrancyGuard {
      * @return tradeRule The trading rule being used in the game.
      * @return lastMove The timestamp of the last move.
      */
-    function getGameDetails(uint256 gameID)
+    function getGameDetails(
+        uint256 gameID
+    )
         public
         view
         returns (
@@ -870,7 +1029,9 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param player address to check
      * @return gamesIndexes a list of indexes
      */
-    function playerGamesPlayed(address player) external view returns (uint256[] memory gamesIndexes) {
+    function playerGamesPlayed(
+        address player
+    ) external view returns (uint256[] memory gamesIndexes) {
         gamesIndexes = playerGames[player];
     }
 
@@ -879,11 +1040,10 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param gameIndex the game in query of
      */
     function forfeit(uint256 gameIndex) public view returns (bool) {
-        return (
-            gamesPlayed[gameIndex].lastMove != 0
-                && gamesPlayed[gameIndex].lastMove + gameIndexToTimerRule[gameIndex] < block.timestamp
-                && !gamesPlayed[gameIndex].gameFinished
-        );
+        return (gamesPlayed[gameIndex].lastMove != 0 &&
+            gamesPlayed[gameIndex].lastMove + gameIndexToTimerRule[gameIndex] <
+            block.timestamp &&
+            !gamesPlayed[gameIndex].gameFinished);
     }
 
     /**
@@ -899,7 +1059,10 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param _player is the player we are interested in
      * @param _gameId is the gameId we are interested in
      */
-    function getStartingHand(address _player, uint256 _gameId) external view returns (uint256[] memory _startingHand) {
+    function getStartingHand(
+        address _player,
+        uint256 _gameId
+    ) external view returns (uint256[] memory _startingHand) {
         GamePlay storage gp = gamesPlayed[_gameId];
         return gp.startingHand[_player];
     }
@@ -909,7 +1072,9 @@ contract AgnosiaGame is ReentrancyGuard {
      * @param _player The address of the player whose available cards we want to fetch.
      * @return _tokenIds An array containing the token IDs of the cards that are available.
      */
-    function getDepositedAvailableCards(address _player) external view returns (uint256[] memory _tokenIds) {
+    function getDepositedAvailableCards(
+        address _player
+    ) external view returns (uint256[] memory _tokenIds) {
         uint256 size = playersDeck[_player].length;
         uint256[] memory result = new uint256[](size);
         uint256 count = 0;
@@ -935,7 +1100,9 @@ contract AgnosiaGame is ReentrancyGuard {
      * @dev Fetches a list of active (non-finalized) game IDs for a given player.
      * @param _player The address of the player.
      */
-    function getActivePlayerGames(address _player) external view returns (uint256[] memory _gameIds) {
+    function getActivePlayerGames(
+        address _player
+    ) external view returns (uint256[] memory _gameIds) {
         uint256[] memory temp = playerGames[_player];
         uint256 count = 0;
 
@@ -947,7 +1114,8 @@ contract AgnosiaGame is ReentrancyGuard {
             GamePlay storage game = gamesPlayed[gameId];
 
             // Condition 1: gameFinished is true and either player is the zero address
-            bool condition1 = game.gameFinished && (game.player1 == address(0) || game.player2 == address(0));
+            bool condition1 = game.gameFinished &&
+                (game.player1 == address(0) || game.player2 == address(0));
 
             // Condition 2: isFinalized is true
             bool condition2 = game.isFinalized;
@@ -975,7 +1143,9 @@ contract AgnosiaGame is ReentrancyGuard {
 }
 
 library putma {
-    function sumFind(uint8[4] memory sum) internal pure returns (uint8[4] memory a, bool truth) {
+    function sumFind(
+        uint8[4] memory sum
+    ) internal pure returns (uint8[4] memory a, bool truth) {
         if (sum[0] > 0) {
             if (sum[0] == sum[1]) {
                 a[0] = 1;
@@ -1008,7 +1178,11 @@ library putma {
         }
     }
 
-    function cardsToCollect(uint256 tradeRule, uint8 winnerPoints, uint8 otherPoints) internal pure returns (uint8) {
+    function cardsToCollect(
+        uint256 tradeRule,
+        uint8 winnerPoints,
+        uint8 otherPoints
+    ) internal pure returns (uint8) {
         if (winnerPoints == otherPoints) {
             return 0;
         }
