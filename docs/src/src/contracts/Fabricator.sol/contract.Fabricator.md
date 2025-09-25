@@ -1,8 +1,8 @@
 # Fabricator
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/Fabricator.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cc124d509378b286cf5b28729406af3750bf09dd/src/contracts/Fabricator.sol)
 
 **Inherits:**
-[ReentrancyGuard](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ReentrancyGuard.md)
+ReentrancyGuard
 
 
 ## State Variables

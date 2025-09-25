@@ -1,8 +1,8 @@
 # TCGInventory
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/agnosia/TCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cc124d509378b286cf5b28729406af3750bf09dd/src/contracts/agnosia/TCGInventory.sol)
 
 **Inherits:**
-[ERC721Enumerable](/src/contracts/flattened/flattened_TCGInventory.sol/abstract.ERC721Enumerable.md), [AccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md), [ReentrancyGuard](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ReentrancyGuard.md)
+ERC721Enumerable, AccessControl, ReentrancyGuard
 
 **Author:**
 Team3d.R&D

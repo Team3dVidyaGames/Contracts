@@ -1,8 +1,8 @@
 # MerchantV1
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cb1733471b1d4daa24a16e671f78159e22669528/src/contracts/merchant/MerchantV1.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/cc124d509378b286cf5b28729406af3750bf09dd/src/contracts/merchant/MerchantV1.sol)
 
 **Inherits:**
-[IMerchantV1](/src/contracts/interfaces/IMerchantV1.sol/interface.IMerchantV1.md), [AccessControl](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.AccessControl.md), [ReentrancyGuard](/src/contracts/flattened/flattened_ChainlinkConsumer.sol/abstract.ReentrancyGuard.md)
+[IMerchantV1](/src/contracts/interfaces/IMerchantV1.sol/interface.IMerchantV1.md), AccessControl, ReentrancyGuard
 
 *A contract for managing the sale of ERC1155 tokens with role-based access control
 and reentrancy protection. Allows adding merchandise, purchasing items, and managing inventory.*
