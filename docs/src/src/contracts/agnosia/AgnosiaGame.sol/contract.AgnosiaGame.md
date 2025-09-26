@@ -1,5 +1,5 @@
 # AgnosiaGame
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/d55e5ec0b365e011d0450d7bd58a74eab92713ee/src/contracts/agnosia/AgnosiaGame.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/9e546b382c23d2b0e19e283e91910f7ca89a14f9/src/contracts/agnosia/AgnosiaGame.sol)
 
 **Inherits:**
 ReentrancyGuard
@@ -17,13 +17,6 @@ IERC20 public immutable token;
 
 ```solidity
 ITCGInventory public immutable cards;
-```
-
-
-### items
-
-```solidity
-IERC721 public immutable items;
 ```
 
 
@@ -168,7 +161,7 @@ uint8[4][9] spots = [
 
 
 ```solidity
-constructor(address _token, address _cards, address _items);
+constructor(address _token, address _cards);
 ```
 
 ### initializeGame

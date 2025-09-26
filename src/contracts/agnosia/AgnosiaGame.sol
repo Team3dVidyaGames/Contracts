@@ -25,7 +25,6 @@ contract AgnosiaGame is ReentrancyGuard {
 
     IERC20 public immutable token;
     ITCGInventory public immutable cards;
-    IERC721 public immutable items;
 
     struct Card {
         uint256 tokenID;
@@ -100,10 +99,9 @@ contract AgnosiaGame is ReentrancyGuard {
         [5, 7, 9, 9]
     ]; // used for the board, 9 is out of bounds
 
-    constructor(address _token, address _cards, address _items) {
+    constructor(address _token, address _cards) {
         token = IERC20(_token); // Vidya
         cards = ITCGInventory(_cards); // Agnosia cards
-        items = IERC721(_items); // TeamOS inventory
         minimumWager = 1 ether;
     }
 
