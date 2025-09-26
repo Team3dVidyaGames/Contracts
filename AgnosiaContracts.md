@@ -12,7 +12,7 @@ export const oldCaulContractAddress = "0x5D00524Ca34C9311DED75b89393ec9f64079965
 Base
 export const vidyaContractAddress = "0x46c8651dDedD50CBDF71de85D3de9AaC80247B62";
 export const packContractAddress = "0x4d2F9CC0b137a8757280b158f50FE508336580aE";
-export const gameContractAddress = ""; 
+export const gameContractAddress = "0xb0f6B6a346b8EbC49DA9636264a79a6380b588cd"; 
 export const cardContractAddress = "0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1"; 
 export const caulContractAddress = "0xaA3Cc06FeB0076e5E6C78262b73DED3C2eC04454"; 
 export const conjContractAddress = "";

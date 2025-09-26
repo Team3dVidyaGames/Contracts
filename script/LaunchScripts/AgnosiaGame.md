@@ -45,28 +45,255 @@ ls -la out/AgnosiaGame.sol/
 
 ## Step 2: Deploy the Contract
 
-Deploy the AgnosiaGame contract using forge with keystore:
+**⚠️ IMPORTANT: Contract Size Optimization Required**
 
+The AgnosiaGame contract is large and may hit the contract size limit. Use the optimization strategies below:
+
+### Contract Size Optimization Strategies
+
+#### Strategy 1: Compiler Optimization (Recommended)
 ```bash
 export KEY_PATH=<Path to keyfile>
 export RPC_URL=https://mainnet.base.org
 export PASSWORD=<Password for keyfile, Delete before push>
 
 # Constructor arguments - Replace with actual addresses
-export TOKEN_ADDRESS=0x[VIDYA_TOKEN_ADDRESS]
-export CARDS_ADDRESS=0x[TCG_INVENTORY_ADDRESS]
+export TOKEN_ADDRESS=0x46c8651dDedD50CBDF71de85D3de9AaC80247B62
+export CARDS_ADDRESS=0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1
 
-# Deploy using keystore file
+# Deploy with maximum optimization
 forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD \
   --broadcast \
   --verify \
+  --optimize \
+  --optimizer-runs 10000 \
   --constructor-args \
     $TOKEN_ADDRESS \
     $CARDS_ADDRESS
+```
 
+#### Strategy 2: ViaIR Compilation (For Very Large Contracts)
+```bash
+# Add to foundry.toml or use --via-ir flag
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --via-ir \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+#### Strategy 3: Gas Limit Override
+```bash
+# Deploy with higher gas limit
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --gas-limit 30000000 \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+#### Strategy 4: Alternative Deployment Methods
+
+**Option A: Deploy via CREATE2 (Factory Pattern)**
+```bash
+# Deploy a factory contract first, then use it to deploy AgnosiaGame
+# This can help with size limits in some cases
+forge create ./src/contracts/factory/GameFactory.sol:GameFactory \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify
+```
+
+**Option B: Deploy with Libraries (Modular Approach)**
+```bash
+# Deploy libraries first
+forge create ./src/contracts/libraries/AgnosiaGameLibrary.sol:AgnosiaGameLibrary \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast
+
+# Then deploy main contract with library links
+export LIBRARY_ADDRESS=0x[LIBRARY_DEPLOYED_ADDRESS]
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --libraries src/contracts/libraries/AgnosiaGameLibrary.sol:AgnosiaGameLibrary:$LIBRARY_ADDRESS \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+### Foundry Configuration for Large Contracts
+
+Create or update `foundry.toml`:
+```toml
+[profile.default]
+optimizer = true
+optimizer_runs = 1000000
+via_ir = true
+bytecode_hash = "none"
+evm_version = "london"
+
+[profile.large_contracts]
+optimizer = true
+optimizer_runs = 1000000
+via_ir = true
+bytecode_hash = "none"
+evm_version = "london"
+size_limit = 24576
+```
+
+### Contract Size Reduction Techniques
+
+#### 1. Code Optimization
+- Remove unused functions
+- Combine similar functions
+- Use libraries for complex logic
+- Optimize data structures
+
+#### 2. Storage Optimization
+- Pack structs efficiently
+- Use smaller data types where possible
+- Remove redundant storage variables
+
+#### 3. Function Optimization
+- Split large functions into smaller ones
+- Use external functions where possible
+- Remove duplicate code
+
+#### 4. Event Optimization
+- Remove unused events
+- Optimize event parameters
+
+### Deployment Commands by Network
+
+#### Base Mainnet
+```bash
+# Base mainnet with optimization
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url https://mainnet.base.org \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --via-ir \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+#### Ethereum Mainnet
+```bash
+# Ethereum mainnet with optimization
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url https://eth-mainnet.g.alchemy.com/v2/YOUR_API_KEY \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --via-ir \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+### Troubleshooting Contract Size Issues
+
+#### Error: CreateContractSizeLimit
+```bash
+# Try these solutions in order:
+
+# 1. Increase optimizer runs
+--optimizer-runs 1000000
+
+# 2. Enable via-ir
+--via-ir
+
+# 3. Use different EVM version
+--evm-version london
+
+# 4. Check for unused code
+forge build --sizes
+
+# 5. Split contract into multiple contracts
+# (See modular deployment section)
+```
+
+#### Check Contract Size
+```bash
+# Check contract size before deployment
+forge build --sizes
+
+# Look for AgnosiaGame in the output
+# Size should be under 24KB (24576 bytes)
+```
+
+### Modular Deployment (Alternative Approach)
+
+If the contract is still too large, consider splitting it:
+
+#### 1. Core Game Logic Contract
+```bash
+# Deploy core game functions
+forge create ./src/contracts/agnosia/AgnosiaGameCore.sol:AgnosiaGameCore \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+#### 2. Game Management Contract
+```bash
+# Deploy game management functions
+forge create ./src/contracts/agnosia/AgnosiaGameManager.sol:AgnosiaGameManager \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $CORE_CONTRACT_ADDRESS
+```
+
+### Flatten Contract for Verification
+```bash
 # Flatten the contract for verification
 forge flatten ./src/contracts/agnosia/AgnosiaGame.sol -o ./src/contracts/flattened/flattened_AgnosiaGame.sol
 ```
@@ -614,15 +841,293 @@ cast logs \
   --rpc-url $RPC_URL
 ```
 
+## Contract Size Optimization Guide
+
+### Understanding Contract Size Limits
+
+- **Ethereum Mainnet**: 24KB (24,576 bytes) limit
+- **Base Mainnet**: 24KB (24,576 bytes) limit  
+- **Polygon**: 24KB (24,576 bytes) limit
+- **Current AgnosiaGame**: ~977 lines, likely over limit
+
+### Size Optimization Strategies
+
+#### 1. Compiler Optimizations (Immediate Solutions)
+
+**Maximum Optimization Settings:**
+```bash
+# In foundry.toml
+[profile.default]
+optimizer = true
+optimizer_runs = 1000000
+via_ir = true
+bytecode_hash = "none"
+evm_version = "london"
+```
+
+**Deployment with Optimization:**
+```bash
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --via-ir \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
+#### 2. Code Structure Optimizations
+
+**A. Move Large Functions to Libraries:**
+```solidity
+// Create AgnosiaGameLogic.sol library
+library AgnosiaGameLogic {
+    function placeCardOnBoard(...) external pure returns (...) {
+        // Move complex game logic here
+    }
+    
+    function calculateWinnings(...) external pure returns (...) {
+        // Move calculation logic here
+    }
+}
+```
+
+**B. Split Contract into Multiple Contracts:**
+```solidity
+// AgnosiaGameCore.sol - Core game logic
+contract AgnosiaGameCore {
+    // Essential game functions only
+}
+
+// AgnosiaGameManager.sol - Game management
+contract AgnosiaGameManager {
+    // Player management, statistics
+}
+
+// AgnosiaGameStorage.sol - Storage contract
+contract AgnosiaGameStorage {
+    // All storage variables
+}
+```
+
+#### 3. Storage Optimizations
+
+**A. Pack Structs Efficiently:**
+```solidity
+// Before (inefficient)
+struct Card {
+    uint256 tokenID;        // 32 bytes
+    uint8[4] powers;        // 4 bytes
+    address owner;          // 20 bytes
+    uint256 userIndex;     // 32 bytes
+    uint256 currentGameIndex; // 32 bytes
+    uint8 level;           // 1 byte
+}
+// Total: 121 bytes
+
+// After (packed)
+struct Card {
+    uint256 tokenID;        // 32 bytes
+    address owner;          // 20 bytes
+    uint256 userIndex;      // 32 bytes
+    uint256 currentGameIndex; // 32 bytes
+    uint8[4] powers;        // 4 bytes
+    uint8 level;           // 1 byte
+}
+// Total: 121 bytes (same, but better packing)
+```
+
+**B. Use Smaller Data Types:**
+```solidity
+// Instead of uint256 for small values
+uint8 level;           // 0-255 levels
+uint32 wins;           // 0-4 billion wins
+uint64 discordId;      // Discord IDs fit in 64 bits
+```
+
+#### 4. Function Optimizations
+
+**A. Remove Unused Functions:**
+```bash
+# Check for unused functions
+forge build --sizes
+```
+
+**B. Combine Similar Functions:**
+```solidity
+// Instead of separate functions
+function getPlayer1Hand() external view returns (uint256[] memory);
+function getPlayer2Hand() external view returns (uint256[] memory);
+
+// Use one function
+function getPlayerHand(address player) external view returns (uint256[] memory);
+```
+
+**C. Use External Functions:**
+```solidity
+// External functions are cheaper to call
+function initializeGame(...) external nonReentrant {
+    // Function body
+}
+```
+
+#### 5. Event Optimizations
+
+**A. Remove Unused Events:**
+```solidity
+// Remove events that are never emitted
+// Keep only essential events
+```
+
+**B. Optimize Event Parameters:**
+```solidity
+// Instead of large arrays in events
+event GameInitialized(uint256 indexed gameId, uint256 wager, uint8 tradeRule);
+
+// Use indexed parameters for filtering
+event CardPlaced(uint256 indexed gameId, uint256 indexed tokenId, uint8 position);
+```
+
+### Advanced Size Reduction Techniques
+
+#### 1. Proxy Pattern Implementation
+
+**Deploy a Proxy Contract:**
+```bash
+# Deploy implementation contract
+forge create ./src/contracts/agnosia/AgnosiaGameImplementation.sol:AgnosiaGameImplementation \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000
+
+# Deploy proxy contract
+forge create ./src/contracts/proxy/GameProxy.sol:GameProxy \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --constructor-args \
+    $IMPLEMENTATION_ADDRESS
+```
+
+#### 2. Diamond Pattern (EIP-2535)
+
+**For extremely large contracts:**
+```solidity
+// Split into facets
+contract AgnosiaGameFacet1 {
+    // Game initialization functions
+}
+
+contract AgnosiaGameFacet2 {
+    // Gameplay functions
+}
+
+contract AgnosiaGameFacet3 {
+    // Player management functions
+}
+```
+
+#### 3. Modular Deployment
+
+**Step-by-step deployment:**
+```bash
+# 1. Deploy core game logic
+forge create ./src/contracts/agnosia/AgnosiaGameCore.sol:AgnosiaGameCore \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000
+
+# 2. Deploy game manager
+forge create ./src/contracts/agnosia/AgnosiaGameManager.sol:AgnosiaGameManager \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --constructor-args \
+    $CORE_CONTRACT_ADDRESS
+
+# 3. Deploy storage contract
+forge create ./src/contracts/agnosia/AgnosiaGameStorage.sol:AgnosiaGameStorage \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000
+```
+
+### Size Checking Commands
+
+```bash
+# Check contract sizes
+forge build --sizes
+
+# Check specific contract
+forge build --sizes | grep AgnosiaGame
+
+# Check with optimization
+forge build --sizes --optimize --optimizer-runs 1000000
+
+# Check with via-ir
+forge build --sizes --via-ir --optimize --optimizer-runs 1000000
+```
+
+### Recommended Deployment Strategy
+
+**For AgnosiaGame contract:**
+
+1. **Try Strategy 1 first** (Compiler optimization)
+2. **If still too large, try Strategy 2** (ViaIR compilation)
+3. **If still too large, use Strategy 4** (Modular deployment)
+4. **Last resort: Proxy pattern**
+
+**Quick deployment command:**
+```bash
+# Try this first - most likely to work
+forge create ./src/contracts/agnosia/AgnosiaGame.sol:AgnosiaGame \
+  --rpc-url $RPC_URL \
+  --keystore $KEY_PATH \
+  --password $PASSWORD \
+  --broadcast \
+  --verify \
+  --optimize \
+  --optimizer-runs 1000000 \
+  --via-ir \
+  --gas-limit 30000000 \
+  --constructor-args \
+    $TOKEN_ADDRESS \
+    $CARDS_ADDRESS
+```
+
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Insufficient Gas**: Add `--gas-limit 2000000` to deployment commands
-2. **Card Not Deposited**: Ensure cards are transferred to the contract before playing
-3. **Card Already in Game**: Check that cards are not already in another game
-4. **Insufficient Token Balance**: Ensure sufficient token balance for wagers
-5. **Invalid Game State**: Check game status before attempting moves
+1. **CreateContractSizeLimit Error**: Use optimization strategies above
+2. **Insufficient Gas**: Add `--gas-limit 30000000` to deployment commands
+3. **Card Not Deposited**: Ensure cards are transferred to the contract before playing
+4. **Card Already in Game**: Check that cards are not already in another game
+5. **Insufficient Token Balance**: Ensure sufficient token balance for wagers
+6. **Invalid Game State**: Check game status before attempting moves
 
 ### Gas Estimation
 
