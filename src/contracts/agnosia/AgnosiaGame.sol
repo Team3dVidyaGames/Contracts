@@ -52,15 +52,11 @@ contract AgnosiaGame is ReentrancyGuard {
     }
 
     struct Player {
-        uint256 _pfpArrayLength;
+        address _nft;
+        uint256 _tokenId;
         uint64 _discordId;
         uint32 _wins;
         uint32 _losses;
-    }
-
-    struct Pfp {
-        address _nft;
-        uint256 _tokenId;
     }
 
     mapping(address => uint256[]) public playersDeck; // tokenId instorage on contract
@@ -69,7 +65,6 @@ contract AgnosiaGame is ReentrancyGuard {
     mapping(uint256 => GamePlay) public gamesPlayed;
     mapping(address => mapping(uint256 => uint256[])) public directRulePrizes;
     mapping(address => Player) public playerData;
-    mapping(address => Pfp[]) playerPfP;
     mapping(address => bool) public isPlayerAdded;
     mapping(uint256 => uint256) public gameStartBlock;
     mapping(uint256 => address) public friendGames; // gameIds reserved for specific player2's
@@ -744,23 +739,8 @@ contract AgnosiaGame is ReentrancyGuard {
 
     function updatePfp(address _nft, uint256 _tokenId) external {
         require(IERC721(_nft).ownerOf(_tokenId) == msg.sender, "Not the owner of this item.");
-        playerData[msg.sender]._pfpArrayLength++;
-        playerPfP[msg.sender].push(Pfp(_nft, _tokenId));
-    }
-
-    function getPfp(address _player) external view returns (Pfp[] memory, uint256) {
-        Pfp[] memory pfp = new Pfp[](playerData[_player]._pfpArrayLength);
-        uint256 count = 0;
-        for (uint256 i = 0; i < playerData[_player]._pfpArrayLength; i++) {
-            if (IERC721(playerPfP[_player][i]._nft).ownerOf(playerPfP[_player][i]._tokenId) == _player) {
-                pfp[count] = playerPfP[_player][i];
-                count++;
-            }
-            unchecked {
-                i++;
-            }
-        }
-        return (pfp, count);
+        playerData[msg.sender]._nft = _nft;
+        playerData[msg.sender]._tokenId = _tokenId;
     }
 
     /**
