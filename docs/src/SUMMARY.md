@@ -23,6 +23,8 @@
       - [MerchantV1](src/contracts/merchant/MerchantV1.sol/contract.MerchantV1.md)
     - [❱ randomness](src/contracts/randomness/README.md)
       - [ChainlinkConsumer](src/contracts/randomness/ChainlinkConsumer.sol/contract.ChainlinkConsumer.md)
+    - [❱ splitter](src/contracts/splitter/README.md)
+      - [SplitterAccessControl](src/contracts/splitter/SplitterAccessControl.sol/contract.SplitterAccessControl.md)
     - [Fabricator](src/contracts/Fabricator.sol/contract.Fabricator.md)
     - [InventoryV1155](src/contracts/InventoryV1155.sol/contract.InventoryV1155.md)
   - [Counter](src/Counter.sol/contract.Counter.md)
