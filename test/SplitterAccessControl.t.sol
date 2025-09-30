@@ -18,11 +18,7 @@ contract SplitterAccessControlTest is Test {
 
     event MemberAdded(address indexed user, uint256 indexed position);
     event MemberRemoved(address indexed user, uint256 indexed position);
-    event PositionAddressChanged(
-        address indexed oldUser,
-        address indexed newUser,
-        uint256 indexed position
-    );
+    event PositionAddressChanged(address indexed oldUser, address indexed newUser, uint256 indexed position);
     event FundsDistributed(address indexed erc20, bool indexed ethAsWell);
 
     function setUp() public {
@@ -39,7 +35,7 @@ contract SplitterAccessControlTest is Test {
         mockToken.mint(address(splitter), 1000e18);
     }
 
-    function testConstructor() public {
+    function testConstructor() public view {
         assertTrue(splitter.hasRole(splitter.DEFAULT_ADMIN_ROLE(), admin));
         assertTrue(splitter.hasRole(splitter.ADMIN_ROLE(), admin));
         assertEq(splitter.memberCount(), 0);
@@ -130,11 +126,11 @@ contract SplitterAccessControlTest is Test {
 
         splitter.changePositionAddress(member3);
 
-        assertEq(splitter.userPosition(member1), 0);
-        assertEq(splitter.userPosition(member3), 1);
-        assertEq(splitter.positionToUser(1), member3);
-        assertTrue(splitter.hasRole(splitter.SPLITTER_ROLE(), member3));
-        assertFalse(splitter.hasRole(splitter.SPLITTER_ROLE(), member1));
+        assertEq(splitter.userPosition(member1), 0, "member1 position should be 0");
+        assertEq(splitter.userPosition(member3), 1, "member3 position should be 1");
+        assertEq(splitter.positionToUser(1), member3, "positionToUser(1) should be member3");
+        assertTrue(splitter.hasRole(splitter.SPLITTER_ROLE(), member3), "member3 should have SPLITTER_ROLE");
+        assertFalse(splitter.hasRole(splitter.SPLITTER_ROLE(), member1), "member1 should not have SPLITTER_ROLE");
     }
 
     function testChangePositionOnlySplitter() public {
@@ -227,21 +223,26 @@ contract SplitterAccessControlTest is Test {
         splitter.addMemberToSplitter(member2);
         splitter.addMemberToSplitter(member3);
 
-        // Mint 7 tokens (not evenly divisible by 3)
-        mockToken.mint(address(splitter), 7);
+        // Create a new token instance for this test to avoid the 1000e18 from setUp
+        MockERC20 testToken = new MockERC20("Test Token 2", "TEST2");
+        // Mint only 7 tokens (not evenly divisible by 3)
+        testToken.mint(address(splitter), 7);
 
-        splitter.distributeFunds(address(mockToken), false);
+        splitter.distributeFunds(address(testToken), false);
 
         // Should distribute 2 tokens to each member, with 1 token remaining
-        assertEq(mockToken.balanceOf(member1), 2);
-        assertEq(mockToken.balanceOf(member2), 2);
-        assertEq(mockToken.balanceOf(member3), 2);
-        assertEq(mockToken.balanceOf(address(splitter)), 1);
+        assertEq(testToken.balanceOf(member1), 2);
+        assertEq(testToken.balanceOf(member2), 2);
+        assertEq(testToken.balanceOf(member3), 2);
+        assertEq(testToken.balanceOf(address(splitter)), 1);
     }
 
     function testDistributeFundsZeroMembers() public {
-        // Should not revert but also not distribute anything
+        // Should revert due to no members when memberCount is 0
+        vm.expectRevert("No members to distribute to");
         splitter.distributeFunds(address(0), true);
+
+        vm.expectRevert("No members to distribute to");
         splitter.distributeFunds(address(mockToken), false);
     }
 
@@ -252,13 +253,15 @@ contract SplitterAccessControlTest is Test {
         // This should work fine due to nonReentrant modifier
         splitter.distributeFunds(address(0), true);
         assertEq(member1.balance, 1 ether);
+
+        // Test that the function can be called again (nonReentrant allows this)
+        vm.deal(address(splitter), 1 ether);
+        splitter.distributeFunds(address(0), true);
+        assertEq(member1.balance, 2 ether);
     }
 
-    function testRoleAdminSetup() public {
-        assertEq(
-            splitter.getRoleAdmin(splitter.ADMIN_ROLE()),
-            splitter.DEFAULT_ADMIN_ROLE()
-        );
+    function testRoleAdminSetup() public view {
+        assertEq(splitter.getRoleAdmin(splitter.ADMIN_ROLE()), splitter.DEFAULT_ADMIN_ROLE());
     }
 
     function testMemberCountUpdates() public {

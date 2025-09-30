@@ -39,24 +39,32 @@ contract SplitterAccessControl is AccessControl, ReentrancyGuard {
         userPosition[positionToUser[memberCount]] = position;
         memberCount--;
         delete userPosition[user];
-        delete positionToUser[position];
+        delete positionToUser[memberCount + 1];
         emit MemberRemoved(user, position);
     }
 
     function changePositionAddress(address user) external onlyRole(SPLITTER_ROLE) {
         address oldUser = msg.sender;
-        uint256 position = userPosition[user];
+        uint256 position = userPosition[msg.sender];
         userPosition[oldUser] = 0;
         positionToUser[position] = user;
         userPosition[user] = position;
+        _revokeRole(SPLITTER_ROLE, oldUser);
+        _grantRole(SPLITTER_ROLE, user);
         emit PositionAddressChanged(oldUser, user, position);
         emit MemberRemoved(oldUser, position);
         emit MemberAdded(user, position);
     }
 
     function distributeFunds(address erc20, bool ethAsWell) external nonReentrant {
+        require(memberCount > 0, "No members to distribute to");
+
         uint256 balance = address(this).balance / memberCount;
-        uint256 erc20Balance = IERC20(erc20).balanceOf(address(this)) / memberCount;
+        uint256 erc20Balance = 0;
+        if (erc20 != address(0)) {
+            erc20Balance = IERC20(erc20).balanceOf(address(this)) / memberCount;
+        }
+
         for (uint256 i = 1; i <= memberCount; i++) {
             address user = positionToUser[i];
             if (ethAsWell) {
