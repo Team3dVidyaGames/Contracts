@@ -1,0 +1,21 @@
+Abitrium
+export const vidyaContractAddress = "0x3d48ae69a2F35D02d6F0c5E84CFE66bE885f3963";
+export const packContractAddress = "0xce87962B3ec0DBE88a48dADC94F3f0c1e755c970"; // old > "0x27Cb29B6ddBae13146E50F546D806E04dBc4e739"
+export const gameContractAddress = "0xff6F9a516cC1C07b19d157eDeC7eA7A578074D1f"; // old > "0x5E49E898C18Bd504170c926dD5b244165905F175"
+export const cardContractAddress = "0x83D4137A37c1e4DB8eB804f3e29e724fB79B26a6"; // old > "0x7B4aB1B6f20aF6555B24C2BccAfBB82b1c5a60aE"
+export const caulContractAddress = "0x84928CcDE2e0a6615c03C4964b5dd65CBb950333"; // old > "0x5D00524Ca34C9311DED75b89393ec9f64079965d"
+export const conjContractAddress = "0x946508f50263fD1330aE6D8701496b0d753e651C"; // conjure address
+export const cntrContractAddress = "0x5C43bef2129f2D4BC978bcC31Cc5e0a90cd886a1"; // template counter
+export const invContractAddress = "0x2Ce68A50a0e5738E675ed9a9899D86a01f2a9a0B";
+export const oldCaulContractAddress = "0x5D00524Ca34C9311DED75b89393ec9f64079965d";
+
+Base
+export const vidyaContractAddress = "0x46c8651dDedD50CBDF71de85D3de9AaC80247B62";
+export const packContractAddress = "0x4d2F9CC0b137a8757280b158f50FE508336580aE";
+export const gameContractAddress = "0xb0f6B6a346b8EbC49DA9636264a79a6380b588cd"; 
+export const cardContractAddress = "0x5176eA3fCAC068A0ed91D356e03db21A08430Cc1"; 
+export const caulContractAddress = "0xaA3Cc06FeB0076e5E6C78262b73DED3C2eC04454"; 
+export const conjContractAddress = "";
+export const cntrContractAddress = ""; // template counter
+export const invContractAddress = "";
+export const consumerRandomness = "0xf4A796f7a10b86897F7236C1f111e5887526FEc4";

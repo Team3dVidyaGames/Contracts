@@ -152,6 +152,8 @@ contract ChainlinkConsumer is VRFConsumerBaseV2Plus, IVRFConsumer, AccessControl
     {
         if (!hasRole(FREE_ROLE, msg.sender)) {
             require(msg.value >= requestFee, "Not enough ETH sent");
+        }
+        if (address(this).balance > 0) {
             _sendSubscriptionFees();
         }
 

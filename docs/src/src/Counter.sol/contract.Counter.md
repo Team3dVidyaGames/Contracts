@@ -1,5 +1,5 @@
 # Counter
-[Git Source](https://github.com//Team3dVidyaGames/InventoryContractV3_erc1155/blob/31e6a3daee14ffbd0b191978eeefd42265f32d78/src/Counter.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/597a494a06b3d5533e4bc67b2d1a7487539c85dc/src/Counter.sol)
 
 
 ## State Variables
