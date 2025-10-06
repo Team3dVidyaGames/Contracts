@@ -1,8 +1,8 @@
 # SplitterAccessControl
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/3f338936af54058cad79e79f965686603f483c22/src/contracts/splitter/SplitterAccessControl.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/c23d2f00a078c0b63e567bcd930645e3fd252715/src/contracts/splitter/SplitterAccessControl.sol)
 
 **Inherits:**
-[AccessControl](/src/contracts/flattened/flattened_SplitterAccessControl.sol/abstract.AccessControl.md), [ReentrancyGuard](/src/contracts/flattened/flattened_SplitterAccessControl.sol/abstract.ReentrancyGuard.md)
+AccessControl, ReentrancyGuard
 
 
 ## State Variables
