@@ -148,11 +148,11 @@ cast send $CONTRACT_ADDRESS \
 ## Step 6: Set ETH Overfund Address
 
 Configure the address to receive excess ETH:
-
+export SPLITTER_ADDR=0x7d36F441fAD902df930b9F11DAcfEF3f898dd1D1
 ```bash
 cast send $CONTRACT_ADDRESS \
   "setEthOverfundAddress(address)" \
-  $USER \
+  $SPLITTER_ADDR \
   --rpc-url $RPC_URL \
   --keystore $KEY_PATH \
   --password $PASSWORD

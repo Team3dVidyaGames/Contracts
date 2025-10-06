@@ -10,3 +10,6 @@
 - [ISwapRouter](UniRouterDataV3.sol/interface.ISwapRouter.md)
 - [UniswapV3Integration](UniswapV3Integration.sol/contract.UniswapV3Integration.md)
 - [WeightedSystem](WeightedSystem.sol/contract.WeightedSystem.md)
+- [ITCGInventory](templateCounter.sol/interface.ITCGInventory.md)
+- [IGame](templateCounter.sol/interface.IGame.md)
+- [TemplateCounter](templateCounter.sol/contract.TemplateCounter.md)
