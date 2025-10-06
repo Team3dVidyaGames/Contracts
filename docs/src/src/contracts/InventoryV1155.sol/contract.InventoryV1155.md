@@ -1,8 +1,8 @@
 # InventoryV1155
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/597a494a06b3d5533e4bc67b2d1a7487539c85dc/src/contracts/InventoryV1155.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/3f338936af54058cad79e79f965686603f483c22/src/contracts/InventoryV1155.sol)
 
 **Inherits:**
-AccessControl, ERC1155
+[AccessControl](/src/contracts/flattened/flattened_SplitterAccessControl.sol/abstract.AccessControl.md), ERC1155
 
 
 ## State Variables

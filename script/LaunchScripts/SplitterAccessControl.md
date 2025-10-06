@@ -51,7 +51,7 @@ The system will prompt you for the keystore password during deployment if `--pas
 Record the deployed contract address as `SPLITTER_ADDR` for the following steps.
 
 ```bash
-export SPLITTER_ADDR=<Deployed SplitterAccessControl address>
+export SPLITTER_ADDR=0x7d36F441fAD902df930b9F11DAcfEF3f898dd1D1
 ```
 
 ## Step 3: Post-Deploy Administration
@@ -108,7 +108,7 @@ To distribute, the contract must hold ETH and/or ERC20 tokens.
 - **Fund with ETH**
 
 ```bash
-cast send $SPLITTER_ADDR --value 0.5ether \
+cast send $SPLITTER_ADDR --value 0.0000005ether \
   --rpc-url $RPC_URL --keystore $KEY_PATH --password $PASSWORD
 ```
 

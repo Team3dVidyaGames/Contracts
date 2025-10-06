@@ -19,3 +19,4 @@ export const conjContractAddress = "";
 export const cntrContractAddress = ""; // template counter
 export const invContractAddress = "";
 export const consumerRandomness = "0xf4A796f7a10b86897F7236C1f111e5887526FEc4";
+export const splitter= "0x7d36F441fAD902df930b9F11DAcfEF3f898dd1D1";

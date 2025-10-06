@@ -2,6 +2,7 @@
 
 # Contents
 - [agnosia](/src/contracts/agnosia)
+- [flattened](/src/contracts/flattened)
 - [interfaces](/src/contracts/interfaces)
 - [libraries](/src/contracts/libraries)
 - [merchant](/src/contracts/merchant)

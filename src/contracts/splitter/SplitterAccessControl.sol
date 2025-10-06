@@ -84,4 +84,6 @@ contract SplitterAccessControl is AccessControl, ReentrancyGuard {
         }
         emit FundsDistributed(erc20, ethAsWell);
     }
+
+    receive() external payable {}
 }
