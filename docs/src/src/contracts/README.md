@@ -4,6 +4,7 @@
 - [agnosia](/src/contracts/agnosia)
 - [interfaces](/src/contracts/interfaces)
 - [libraries](/src/contracts/libraries)
+- [lootcrate](/src/contracts/lootcrate)
 - [merchant](/src/contracts/merchant)
 - [randomness](/src/contracts/randomness)
 - [splitter](/src/contracts/splitter)
