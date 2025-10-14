@@ -15,10 +15,10 @@ error InvalidTokenID(uint256 _tokenId);
 contract LootVault is Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder {
     using SafeERC20 for IERC20;
 
-    uint256 public ETHID = 0;
-    uint256 public ERC20ID = 20;
-    uint256 public ERC1155ID = 1155;
-    uint256 public ERC721ID = 721;
+    uint256 public constant NATIVEID = 0;
+    uint256 public constant ERC20ID = 20;
+    uint256 public constant ERC1155ID = 1155;
+    uint256 public constant ERC721ID = 721;
 
     constructor(address _owner) Ownable(_owner) {}
 
@@ -35,8 +35,12 @@ contract LootVault is Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder {
         return this.onERC721Received.selector;
     }
 
-    function claimLoot(address lootToken, uint256 tokenId, uint256 amount, address to) external onlyOwner {
-        if (tokenId == ETHID) {
+    function claimLoot(address lootToken, uint256 tokenId, uint256 amount, address to)
+        external
+        onlyOwner
+        nonReentrant
+    {
+        if (tokenId == NATIVEID) {
             payable(to).transfer(amount);
         } else if (tokenId == ERC20ID) {
             IERC20(lootToken).safeTransfer(to, amount);
