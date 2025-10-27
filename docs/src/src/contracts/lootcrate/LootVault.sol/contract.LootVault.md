@@ -1,8 +1,8 @@
 # LootVault
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/b8947e8078c83c021a621910f8949582d5e5b7a1/src/contracts/lootcrate/LootVault.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/b5bfef754acfacd78150cf855fef6e8434ab19d9/src/contracts/lootcrate/LootVault.sol)
 
 **Inherits:**
-Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder
+[ILootVault](/src/contracts/interfaces/ILootVault.sol/interface.ILootVault.md), Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder
 
 
 ## State Variables
@@ -54,6 +54,13 @@ function onERC1155Received(address, address, uint256, uint256, bytes memory) pub
 
 ```solidity
 function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4);
+```
+
+### _validateAddresses
+
+
+```solidity
+function _validateAddresses(address lootToken, address to, uint256 ercID) internal pure;
 ```
 
 ### claimLoot
