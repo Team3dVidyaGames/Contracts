@@ -1,5 +1,5 @@
 # LootVault
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/c2c2953897142b895776d58e8b608d1002e4b685/src/contracts/lootcrate/LootVault.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/b8947e8078c83c021a621910f8949582d5e5b7a1/src/contracts/lootcrate/LootVault.sol)
 
 **Inherits:**
 Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder
@@ -60,7 +60,10 @@ function onERC721Received(address, address, uint256, bytes memory) public virtua
 
 
 ```solidity
-function claimLoot(address lootToken, uint256 tokenId, uint256 amount, address to) external onlyOwner nonReentrant;
+function claimLoot(address lootToken, uint256 ercID, uint256 tokenId, uint256 amount, address to)
+    external
+    onlyOwner
+    nonReentrant;
 ```
 
 ### receive

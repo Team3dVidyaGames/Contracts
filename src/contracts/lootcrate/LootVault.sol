@@ -35,21 +35,21 @@ contract LootVault is Ownable, ReentrancyGuard, ERC1155Holder, ERC721Holder {
         return this.onERC721Received.selector;
     }
 
-    function claimLoot(address lootToken, uint256 tokenId, uint256 amount, address to)
+    function claimLoot(address lootToken, uint256 ercID, uint256 tokenId, uint256 amount, address to)
         external
         onlyOwner
         nonReentrant
     {
-        if (tokenId == NATIVEID) {
+        if (ercID == NATIVEID) {
             payable(to).transfer(amount);
-        } else if (tokenId == ERC20ID) {
+        } else if (ercID == ERC20ID) {
             IERC20(lootToken).safeTransfer(to, amount);
-        } else if (tokenId == ERC1155ID) {
+        } else if (ercID == ERC1155ID) {
             IERC1155(lootToken).safeTransferFrom(address(this), to, tokenId, amount, "");
-        } else if (tokenId == ERC721ID) {
+        } else if (ercID == ERC721ID) {
             IERC721(lootToken).safeTransferFrom(address(this), to, tokenId);
         } else {
-            revert InvalidTokenID(tokenId);
+            revert InvalidTokenID(ercID);
         }
     }
 
