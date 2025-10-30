@@ -1,6 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.6;
 
+import "./IOwnable.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "../../../lib/openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 interface ILootVault {
     // Constants
     function NATIVEID() external pure returns (uint256);

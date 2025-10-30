@@ -51,10 +51,7 @@ contract LootVaultTest is Test {
         assertEq(address(vault).balance, INITIAL_ETH_BALANCE);
         assertEq(erc20Token.balanceOf(address(vault)), INITIAL_ERC20_BALANCE);
         assertEq(erc721Token.ownerOf(0), address(vault));
-        assertEq(
-            erc1155Token.balanceOf(address(vault), ERC1155_TOKEN_ID),
-            ERC1155_AMOUNT
-        );
+        assertEq(erc1155Token.balanceOf(address(vault), ERC1155_TOKEN_ID), ERC1155_AMOUNT);
     }
 
     // Test Native ETH Transfers
@@ -63,21 +60,9 @@ contract LootVaultTest is Test {
         uint256 initialBalance = user1.balance;
 
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            claimAmount,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(0xdeadbeef), vault.NATIVEID(), 0, claimAmount, user1);
 
-        vault.claimLoot(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            claimAmount,
-            user1
-        );
+        vault.claimLoot(address(0xdeadbeef), vault.NATIVEID(), 0, claimAmount, user1);
 
         assertEq(user1.balance, initialBalance + claimAmount);
         assertEq(address(vault).balance, INITIAL_ETH_BALANCE - claimAmount);
@@ -86,13 +71,7 @@ contract LootVaultTest is Test {
     function testClaimAllNativeETH() public {
         uint256 initialBalance = user1.balance;
 
-        vault.claimLoot(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            INITIAL_ETH_BALANCE,
-            user1
-        );
+        vault.claimLoot(address(0xdeadbeef), vault.NATIVEID(), 0, INITIAL_ETH_BALANCE, user1);
 
         assertEq(user1.balance, initialBalance + INITIAL_ETH_BALANCE);
         assertEq(address(vault).balance, 0);
@@ -104,44 +83,20 @@ contract LootVaultTest is Test {
         uint256 initialBalance = erc20Token.balanceOf(user1);
 
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc20Token),
-            vault.ERC20ID(),
-            0,
-            claimAmount,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc20Token), vault.ERC20ID(), 0, claimAmount, user1);
 
-        vault.claimLoot(
-            address(erc20Token),
-            vault.ERC20ID(),
-            0,
-            claimAmount,
-            user1
-        );
+        vault.claimLoot(address(erc20Token), vault.ERC20ID(), 0, claimAmount, user1);
 
         assertEq(erc20Token.balanceOf(user1), initialBalance + claimAmount);
-        assertEq(
-            erc20Token.balanceOf(address(vault)),
-            INITIAL_ERC20_BALANCE - claimAmount
-        );
+        assertEq(erc20Token.balanceOf(address(vault)), INITIAL_ERC20_BALANCE - claimAmount);
     }
 
     function testClaimAllERC20Tokens() public {
         uint256 initialBalance = erc20Token.balanceOf(user1);
 
-        vault.claimLoot(
-            address(erc20Token),
-            vault.ERC20ID(),
-            0,
-            INITIAL_ERC20_BALANCE,
-            user1
-        );
+        vault.claimLoot(address(erc20Token), vault.ERC20ID(), 0, INITIAL_ERC20_BALANCE, user1);
 
-        assertEq(
-            erc20Token.balanceOf(user1),
-            initialBalance + INITIAL_ERC20_BALANCE
-        );
+        assertEq(erc20Token.balanceOf(user1), initialBalance + INITIAL_ERC20_BALANCE);
         assertEq(erc20Token.balanceOf(address(vault)), 0);
     }
 
@@ -150,21 +105,9 @@ contract LootVaultTest is Test {
         uint256 tokenId = 0; // First minted NFT
 
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc721Token),
-            vault.ERC721ID(),
-            tokenId,
-            0,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc721Token), vault.ERC721ID(), tokenId, 0, user1);
 
-        vault.claimLoot(
-            address(erc721Token),
-            vault.ERC721ID(),
-            tokenId,
-            0,
-            user1
-        );
+        vault.claimLoot(address(erc721Token), vault.ERC721ID(), tokenId, 0, user1);
 
         assertEq(erc721Token.ownerOf(tokenId), user1);
     }
@@ -173,13 +116,7 @@ contract LootVaultTest is Test {
         uint256 tokenId = 0;
 
         // Amount parameter should be ignored for ERC721
-        vault.claimLoot(
-            address(erc721Token),
-            vault.ERC721ID(),
-            tokenId,
-            999,
-            user1
-        );
+        vault.claimLoot(address(erc721Token), vault.ERC721ID(), tokenId, 999, user1);
 
         assertEq(erc721Token.ownerOf(tokenId), user1);
     }
@@ -187,56 +124,23 @@ contract LootVaultTest is Test {
     // Test ERC1155 Token Transfers
     function testClaimERC1155Tokens() public {
         uint256 claimAmount = 10;
-        uint256 initialBalance = erc1155Token.balanceOf(
-            user1,
-            ERC1155_TOKEN_ID
-        );
+        uint256 initialBalance = erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID);
 
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            claimAmount,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, claimAmount, user1);
 
-        vault.claimLoot(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            claimAmount,
-            user1
-        );
+        vault.claimLoot(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, claimAmount, user1);
 
-        assertEq(
-            erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID),
-            initialBalance + claimAmount
-        );
-        assertEq(
-            erc1155Token.balanceOf(address(vault), ERC1155_TOKEN_ID),
-            ERC1155_AMOUNT - claimAmount
-        );
+        assertEq(erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID), initialBalance + claimAmount);
+        assertEq(erc1155Token.balanceOf(address(vault), ERC1155_TOKEN_ID), ERC1155_AMOUNT - claimAmount);
     }
 
     function testClaimAllERC1155Tokens() public {
-        uint256 initialBalance = erc1155Token.balanceOf(
-            user1,
-            ERC1155_TOKEN_ID
-        );
+        uint256 initialBalance = erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID);
 
-        vault.claimLoot(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            ERC1155_AMOUNT,
-            user1
-        );
+        vault.claimLoot(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, ERC1155_AMOUNT, user1);
 
-        assertEq(
-            erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID),
-            initialBalance + ERC1155_AMOUNT
-        );
+        assertEq(erc1155Token.balanceOf(user1, ERC1155_TOKEN_ID), initialBalance + ERC1155_AMOUNT);
         assertEq(erc1155Token.balanceOf(address(vault), ERC1155_TOKEN_ID), 0);
     }
 
@@ -244,59 +148,23 @@ contract LootVaultTest is Test {
     function testMultipleClaims() public {
         // Claim ETH
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            1 ether,
-            user1
-        );
-        vault.claimLoot(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            1 ether,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(0xdeadbeef), vault.NATIVEID(), 0, 1 ether, user1);
+        vault.claimLoot(address(0xdeadbeef), vault.NATIVEID(), 0, 1 ether, user1);
 
         // Claim ERC20
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc20Token),
-            vault.ERC20ID(),
-            0,
-            1000,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc20Token), vault.ERC20ID(), 0, 1000, user1);
         vault.claimLoot(address(erc20Token), vault.ERC20ID(), 0, 1000, user1);
 
         // Claim ERC721
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc721Token),
-            vault.ERC721ID(),
-            0,
-            0,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc721Token), vault.ERC721ID(), 0, 0, user1);
         vault.claimLoot(address(erc721Token), vault.ERC721ID(), 0, 0, user1);
 
         // Claim ERC1155
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            10,
-            user1
-        );
-        vault.claimLoot(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            10,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, 10, user1);
+        vault.claimLoot(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, 10, user1);
 
         // Verify all transfers
         assertEq(user1.balance, 1 ether);
@@ -316,13 +184,7 @@ contract LootVaultTest is Test {
 
     function testOwnerCanClaim() public {
         // Test that owner can claim (this should work)
-        vault.claimLoot(
-            address(0xdeadbeef),
-            vault.NATIVEID(),
-            0,
-            1 ether,
-            user1
-        );
+        vault.claimLoot(address(0xdeadbeef), vault.NATIVEID(), 0, 1 ether, user1);
         assertEq(user1.balance, 1 ether);
     }
 
@@ -357,20 +219,12 @@ contract LootVaultTest is Test {
         uint256 erc1155Id = vault.ERC1155ID();
         vm.prank(user1);
         vm.expectRevert();
-        vault.claimLoot(
-            address(erc1155Token),
-            erc1155Id,
-            ERC1155_TOKEN_ID,
-            10,
-            user2
-        );
+        vault.claimLoot(address(erc1155Token), erc1155Id, ERC1155_TOKEN_ID, 10, user2);
     }
 
     // Test Invalid Token ID
     function testInvalidTokenID() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(ILootVault.InvalidErcID.selector, 999)
-        );
+        vm.expectRevert(abi.encodeWithSelector(ILootVault.InvalidErcID.selector, 999));
         vault.claimLoot(address(0xdeadbeef), 999, 0, 1 ether, user1);
     }
 
@@ -381,19 +235,9 @@ contract LootVaultTest is Test {
 
         // This will revert due to insufficient ETH balance in the vault
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ILootVault.InsufficientBalance.selector,
-                INITIAL_ETH_BALANCE,
-                excessiveAmount
-            )
+            abi.encodeWithSelector(ILootVault.InsufficientBalance.selector, INITIAL_ETH_BALANCE, excessiveAmount)
         );
-        vault.claimLoot(
-            address(0xdeadbeef),
-            nativeId,
-            0,
-            excessiveAmount,
-            user1
-        );
+        vault.claimLoot(address(0xdeadbeef), nativeId, 0, excessiveAmount, user1);
     }
 
     function testInsufficientERC20Balance() public {
@@ -402,19 +246,9 @@ contract LootVaultTest is Test {
 
         // This will revert due to insufficient ERC20 balance in the vault
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ILootVault.InsufficientBalance.selector,
-                INITIAL_ERC20_BALANCE,
-                excessiveAmount
-            )
+            abi.encodeWithSelector(ILootVault.InsufficientBalance.selector, INITIAL_ERC20_BALANCE, excessiveAmount)
         );
-        vault.claimLoot(
-            address(erc20Token),
-            erc20Id,
-            0,
-            excessiveAmount,
-            user1
-        );
+        vault.claimLoot(address(erc20Token), erc20Id, 0, excessiveAmount, user1);
     }
 
     function testInsufficientERC1155Balance() public {
@@ -423,19 +257,9 @@ contract LootVaultTest is Test {
 
         // This will revert due to insufficient ERC1155 balance in the vault
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ILootVault.InsufficientBalance.selector,
-                ERC1155_AMOUNT,
-                excessiveAmount
-            )
+            abi.encodeWithSelector(ILootVault.InsufficientBalance.selector, ERC1155_AMOUNT, excessiveAmount)
         );
-        vault.claimLoot(
-            address(erc1155Token),
-            erc1155Id,
-            ERC1155_TOKEN_ID,
-            excessiveAmount,
-            user1
-        );
+        vault.claimLoot(address(erc1155Token), erc1155Id, ERC1155_TOKEN_ID, excessiveAmount, user1);
     }
 
     // Test Token Reception
@@ -445,7 +269,7 @@ contract LootVaultTest is Test {
 
         vm.deal(user1, sendAmount);
         vm.prank(user1);
-        (bool success, ) = address(vault).call{value: sendAmount}("");
+        (bool success,) = address(vault).call{value: sendAmount}("");
 
         assertTrue(success);
         assertEq(address(vault).balance, initialBalance + sendAmount);
@@ -457,10 +281,7 @@ contract LootVaultTest is Test {
 
         erc20Token.mint(address(vault), mintAmount);
 
-        assertEq(
-            erc20Token.balanceOf(address(vault)),
-            initialBalance + mintAmount
-        );
+        assertEq(erc20Token.balanceOf(address(vault)), initialBalance + mintAmount);
     }
 
     function testCanReceiveERC721() public {
@@ -490,13 +311,7 @@ contract LootVaultTest is Test {
 
     function testClaimToZeroAddress() public {
         uint256 nativeId = vault.NATIVEID();
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ILootVault.InvalidAddresses.selector,
-                address(0xdeadbeef),
-                address(0)
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ILootVault.InvalidAddresses.selector, address(0xdeadbeef), address(0)));
         vault.claimLoot(address(0xdeadbeef), nativeId, 0, 1 ether, address(0));
     }
 
@@ -512,52 +327,22 @@ contract LootVaultTest is Test {
     function testEventEmission() public {
         // Test ETH event
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(0),
-            vault.NATIVEID(),
-            0,
-            1 ether,
-            user1
-        );
+        emit ILootVault.LootClaimed(address(0), vault.NATIVEID(), 0, 1 ether, user1);
         vault.claimLoot(address(0), vault.NATIVEID(), 0, 1 ether, user1);
 
         // Test ERC20 event
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc20Token),
-            vault.ERC20ID(),
-            0,
-            500,
-            user2
-        );
+        emit ILootVault.LootClaimed(address(erc20Token), vault.ERC20ID(), 0, 500, user2);
         vault.claimLoot(address(erc20Token), vault.ERC20ID(), 0, 500, user2);
 
         // Test ERC721 event
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc721Token),
-            vault.ERC721ID(),
-            0,
-            0,
-            user2
-        );
+        emit ILootVault.LootClaimed(address(erc721Token), vault.ERC721ID(), 0, 0, user2);
         vault.claimLoot(address(erc721Token), vault.ERC721ID(), 0, 0, user2);
 
         // Test ERC1155 event
         vm.expectEmit(true, true, true, true);
-        emit ILootVault.LootClaimed(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            25,
-            user2
-        );
-        vault.claimLoot(
-            address(erc1155Token),
-            vault.ERC1155ID(),
-            ERC1155_TOKEN_ID,
-            25,
-            user2
-        );
+        emit ILootVault.LootClaimed(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, 25, user2);
+        vault.claimLoot(address(erc1155Token), vault.ERC1155ID(), ERC1155_TOKEN_ID, 25, user2);
     }
 }

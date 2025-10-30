@@ -1,5 +1,5 @@
 # ITCGInventory
-[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/b5bfef754acfacd78150cf855fef6e8434ab19d9/src/contracts/interfaces/ITCGInventory.sol)
+[Git Source](https://github.com//Team3dVidyaGames/Contracts/blob/fe1c37ad96fd8edc607fe8fc9fe164908c2347f3/src/contracts/interfaces/ITCGInventory.sol)
 
 **Inherits:**
 IERC721

@@ -19,6 +19,7 @@
       - [IInventoryV1155](src/contracts/interfaces/IInventoryV1155.sol/interface.IInventoryV1155.md)
       - [ILootVault](src/contracts/interfaces/ILootVault.sol/interface.ILootVault.md)
       - [IMerchantV1](src/contracts/interfaces/IMerchantV1.sol/interface.IMerchantV1.md)
+      - [IOwnable](src/contracts/interfaces/IOwnable.sol/interface.IOwnable.md)
       - [ITCGInventory](src/contracts/interfaces/ITCGInventory.sol/interface.ITCGInventory.md)
       - [IVRFConsumer](src/contracts/interfaces/IVRFConsumer.sol/interface.IVRFConsumer.md)
     - [❱ libraries](src/contracts/libraries/README.md)
